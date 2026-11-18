@@ -1,120 +1,102 @@
 import { Link } from 'react-router-dom';
+import { Users, Clock, ArrowUpRight } from 'lucide-react';
 
 /**
- * Card displaying a single event package summary with tactile hover and clean editorial typography.
- * @param {Object} pkg - Package data from API
+ * High-end minimalist PackageCard with image zoom, clean typography and specification metadata.
+ * @param {Object} pkg - Package data
  */
 const PackageCard = ({ pkg }) => {
-  const fallbackImg = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600';
+  const fallbackImg =
+    'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80';
   const img = pkg.images?.[0] || fallbackImg;
   const categoryLabel = pkg.category
     ? pkg.category.charAt(0).toUpperCase() + pkg.category.slice(1)
     : 'Package';
 
   return (
-    <div className="card card-tactile card-interactive h-100 d-flex flex-column overflow-hidden">
-      {/* Package Image & Badges */}
-      <div style={{ position: 'relative', height: '210px', backgroundColor: 'var(--bg-surface-subtle)', overflow: 'hidden' }}>
+    <div className="card-luxury h-100 d-flex flex-column">
+      {/* Image & Category Badges */}
+      <div className="card-luxury-image-wrap" style={{ height: '230px' }}>
         <img
           src={img}
           alt={pkg.title || 'Event package'}
-          className="w-100 h-100"
-          style={{ objectFit: 'cover', transition: 'transform 0.3s ease' }}
           onError={(e) => {
             e.target.src = fallbackImg;
           }}
         />
-        {/* Subtle Category & Featured Tags */}
         <div className="position-absolute top-0 start-0 m-3 d-flex gap-2">
-          <span
-            className="badge badge-neutral"
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.94)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-subtle)',
-              backdropFilter: 'none',
-              fontSize: '11px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {categoryLabel}
-          </span>
-          {pkg.isFeatured && (
-            <span
-              className="badge"
-              style={{
-                backgroundColor: 'var(--brand-primary)',
-                color: '#ffffff',
-                fontSize: '11px',
-                letterSpacing: '0.02em',
-              }}
-            >
-              Featured
-            </span>
-          )}
+          <span className="badge-minimal">{categoryLabel}</span>
+          {pkg.isFeatured && <span className="badge-minimal gold">Featured</span>}
         </div>
       </div>
 
-      {/* Package Body */}
-      <div className="card-body d-flex flex-column p-4">
-        <h4
-          className="card-title fw-bold mb-2"
-          style={{
-            fontSize: '1.15rem',
-            letterSpacing: '-0.025em',
-            color: 'var(--text-primary)',
-            lineHeight: 1.3,
-          }}
-        >
+      {/* Body Content */}
+      <div className="p-4 d-flex flex-column flex-grow-1">
+        <h3 className="fs-5 fw-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
           {pkg.title}
-        </h4>
+        </h3>
 
         <p
-          className="card-text text-muted small flex-grow-1 mb-3"
-          style={{ lineHeight: 1.6, minHeight: '40px' }}
+          className="text-secondary small mb-3 flex-grow-1"
+          style={{
+            lineHeight: 1.6,
+            minHeight: '44px',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
         >
-          {pkg.shortDescription || pkg.description?.slice(0, 110) || 'Custom package built to deliver a seamless event.'}
-          {!pkg.shortDescription && pkg.description?.length > 110 ? '…' : ''}
+          {pkg.shortDescription || pkg.description || 'Custom crafted celebration experience.'}
         </p>
 
         {/* Specifications */}
         <div
           className="d-flex align-items-center gap-3 py-2 mb-3 text-secondary small"
-          style={{ borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)', fontSize: '12px' }}
+          style={{
+            borderTop: '1px solid var(--border-hairline)',
+            borderBottom: '1px solid var(--border-hairline)',
+            fontSize: '0.8rem',
+          }}
         >
           {pkg.capacity && (
             <span className="d-flex align-items-center gap-1">
-              <i className="bi bi-people" aria-hidden="true" />
-              {pkg.capacity} guests
+              <Users size={14} className="text-muted" />
+              <span>{pkg.capacity} guests</span>
             </span>
           )}
           {pkg.duration && (
             <span className="d-flex align-items-center gap-1">
-              <i className="bi bi-clock" aria-hidden="true" />
-              {pkg.duration}
+              <Clock size={14} className="text-muted" />
+              <span>{pkg.duration}</span>
             </span>
           )}
         </div>
 
-        {/* Price & CTA */}
-        <div className="d-flex justify-content-between align-items-center mt-auto pt-1">
+        {/* Price & Action */}
+        <div className="d-flex justify-content-between align-items-center mt-auto pt-2">
           <div>
-            <div className="text-muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              From
+            <div
+              className="text-muted"
+              style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            >
+              Estimated From
             </div>
-            <div className="fw-bold" style={{ fontSize: '1.2rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            <div
+              className="font-display fw-bold"
+              style={{ fontSize: '1.25rem', color: 'var(--brand-gold)' }}
+            >
               ₹{Number(pkg.price || 0).toLocaleString('en-IN')}
             </div>
           </div>
 
           <Link
             to={`/packages/${pkg._id}`}
-            className="btn btn-outline-primary btn-tactile btn-sm"
-            style={{ fontSize: '13px', padding: '6px 14px' }}
+            className="btn-luxury-outline py-2 px-3 text-decoration-none"
+            style={{ fontSize: '0.8rem' }}
           >
-            Details
-            <i className="bi bi-arrow-right ms-2 icon-nudge" aria-hidden="true" />
+            <span>Details</span>
+            <ArrowUpRight size={13} />
           </Link>
         </div>
       </div>

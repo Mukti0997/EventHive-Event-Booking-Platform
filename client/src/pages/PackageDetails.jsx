@@ -1,5 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import {
+  Users,
+  Clock,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpRight,
+  ShieldCheck,
+  Calendar,
+  Sparkles,
+  PhoneCall,
+} from 'lucide-react';
 import { getPackage } from '../services/packageService';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
@@ -27,22 +39,11 @@ export default function PackageDetails() {
 
   useEffect(() => {
     if (id) fetchPackage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-
-  const categoryColors = {
-    birthday: 'primary',
-    wedding: 'danger',
-    corporate: 'dark',
-    anniversary: 'success',
-    other: 'secondary',
-  };
-
-  const badgeColor = pkg ? (categoryColors[pkg.category?.toLowerCase()] || 'primary') : 'primary';
 
   if (loading) {
     return (
-      <div className="container py-5">
+      <div className="py-5 text-center my-5">
         <Loader />
       </div>
     );
@@ -50,12 +51,12 @@ export default function PackageDetails() {
 
   if (error) {
     return (
-      <div className="container py-5">
+      <div className="container py-5 my-5">
         <ErrorMessage message={error} onRetry={fetchPackage} />
-        <div className="text-center mt-3">
-          <Link to="/packages" className="btn btn-outline-primary rounded-pill">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Packages
+        <div className="text-center mt-4">
+          <Link to="/packages" className="btn-luxury-outline">
+            <ChevronLeft size={16} />
+            <span>Return to Portfolio</span>
           </Link>
         </div>
       </div>
@@ -64,234 +65,256 @@ export default function PackageDetails() {
 
   if (!pkg) return null;
 
-  const images = pkg.images?.filter(Boolean) || [];
+  const fallbackImg =
+    'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80';
+  const rawImages = pkg.images?.filter(Boolean) || [];
+  const images = rawImages.length > 0 ? rawImages : [fallbackImg];
 
   return (
-    <>
-      {/* Breadcrumb */}
-      <div className="bg-light border-bottom py-3">
+    <div className="package-details-page pb-5">
+      {/* Editorial Breadcrumb */}
+      <div className="py-3 border-bottom" style={{ borderColor: 'var(--border-hairline)' }}>
         <div className="container">
-          <nav aria-label="breadcrumb">
-            <ol className="breadcrumb mb-0 small">
-              <li className="breadcrumb-item">
-                <Link to="/" className="text-decoration-none">Home</Link>
-              </li>
-              <li className="breadcrumb-item">
-                <Link to="/packages" className="text-decoration-none">Packages</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                {pkg.title || pkg.name}
-              </li>
-            </ol>
-          </nav>
+          <div className="d-flex align-items-center gap-2 small text-muted">
+            <Link to="/" className="text-decoration-none text-muted hover-gold">
+              Home
+            </Link>
+            <span>/</span>
+            <Link to="/packages" className="text-decoration-none text-muted hover-gold">
+              Collections
+            </Link>
+            <span>/</span>
+            <span className="text-primary fw-medium">{pkg.title}</span>
+          </div>
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Details Section */}
       <section className="py-5">
         <div className="container">
           <div className="row g-5">
-            {/* ── Image Gallery ── */}
-            <div className="col-lg-6">
-              {images.length > 0 ? (
-                <>
-                  {/* Main Image */}
-                  <div
-                    className="rounded-4 overflow-hidden shadow mb-3 position-relative"
-                    style={{ height: '420px' }}
-                  >
-                    <img
-                      src={images[activeImage]}
-                      alt={`${pkg.title || pkg.name} — image ${activeImage + 1}`}
-                      className="w-100 h-100"
-                      style={{ objectFit: 'cover' }}
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                    {images.length > 1 && (
-                      <>
-                        <button
-                          className="btn btn-light btn-sm position-absolute top-50 start-0 translate-middle-y ms-3 rounded-circle shadow"
-                          style={{ width: '40px', height: '40px' }}
-                          onClick={() => setActiveImage((prev) => (prev - 1 + images.length) % images.length)}
-                          aria-label="Previous image"
-                        >
-                          <i className="bi bi-chevron-left"></i>
-                        </button>
-                        <button
-                          className="btn btn-light btn-sm position-absolute top-50 end-0 translate-middle-y me-3 rounded-circle shadow"
-                          style={{ width: '40px', height: '40px' }}
-                          onClick={() => setActiveImage((prev) => (prev + 1) % images.length)}
-                          aria-label="Next image"
-                        >
-                          <i className="bi bi-chevron-right"></i>
-                        </button>
-                        <div className="position-absolute bottom-0 end-0 m-3">
-                          <span className="badge bg-dark bg-opacity-60 px-2 py-1">
-                            {activeImage + 1} / {images.length}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Thumbnails */}
-                  {images.length > 1 && (
-                    <div className="d-flex gap-2 overflow-auto pb-1">
-                      {images.map((img, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setActiveImage(idx)}
-                          className={`p-0 border-0 rounded-3 overflow-hidden flex-shrink-0 ${
-                            activeImage === idx ? 'ring-active' : 'opacity-60'
-                          }`}
-                          style={{
-                            width: '80px',
-                            height: '60px',
-                            outline: activeImage === idx ? '3px solid #0d6efd' : 'none',
-                            outlineOffset: '2px',
-                            transition: 'opacity 0.2s',
-                          }}
-                          aria-label={`View image ${idx + 1}`}
-                        >
-                          <img
-                            src={img}
-                            alt=""
-                            className="w-100 h-100"
-                            style={{ objectFit: 'cover' }}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                /* Fallback */
-                <div
-                  className="rounded-4 d-flex align-items-center justify-content-center shadow"
-                  style={{
-                    height: '420px',
-                    background: 'linear-gradient(135deg, #e8f4fd 0%, #f3e8ff 100%)',
+            {/* Gallery Column */}
+            <div className="col-lg-7">
+              {/* Main Showcase Image */}
+              <div
+                className="position-relative rounded-3 overflow-hidden shadow-sm mb-3"
+                style={{ height: '460px', backgroundColor: 'var(--bg-surface-subtle)' }}
+              >
+                <img
+                  src={images[activeImage]}
+                  alt={pkg.title}
+                  className="w-100 h-100"
+                  style={{ objectFit: 'cover', transition: 'all 0.4s ease' }}
+                  onError={(e) => {
+                    e.target.src = fallbackImg;
                   }}
-                >
-                  <div className="text-center text-muted">
-                    <i className="bi bi-image fs-1 d-block mb-3 opacity-40"></i>
-                    <p className="small">No images available</p>
-                  </div>
-                </div>
-              )}
-            </div>
+                />
 
-            {/* ── Package Info ── */}
-            <div className="col-lg-6">
-              {/* Category */}
-              {pkg.category && (
-                <span className={`badge bg-${badgeColor} text-capitalize mb-3 px-3 py-2`}>
-                  <i className="bi bi-tag me-1"></i>
-                  {pkg.category}
-                </span>
-              )}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveImage((prev) => (prev - 1 + images.length) % images.length)
+                      }
+                      className="btn position-absolute top-50 start-0 translate-middle-y ms-3 p-2 rounded-circle"
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-subtle)',
+                        zIndex: 2,
+                      }}
+                      aria-label="Previous photo"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
 
-              <h1 className="display-6 fw-bold mb-3">{pkg.title || pkg.name}</h1>
+                    <button
+                      type="button"
+                      onClick={() => setActiveImage((prev) => (prev + 1) % images.length)}
+                      className="btn position-absolute top-50 end-0 translate-middle-y me-3 p-2 rounded-circle"
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-subtle)',
+                        zIndex: 2,
+                      }}
+                      aria-label="Next photo"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
 
-              {/* Price */}
-              {pkg.price && (
-                <div className="mb-4">
-                  <span className="display-6 fw-black text-primary">
-                    ₹{pkg.price.toLocaleString('en-IN')}
-                  </span>
-                  <span className="text-muted ms-2">onwards</span>
-                </div>
-              )}
-
-              {/* Quick Stats */}
-              <div className="row g-3 mb-4">
-                {pkg.capacity && (
-                  <div className="col-auto">
-                    <div className="d-flex align-items-center gap-2 px-3 py-2 rounded-3 bg-light border">
-                      <i className="bi bi-people-fill text-primary"></i>
-                      <div>
-                        <div className="small text-muted">Capacity</div>
-                        <div className="fw-semibold small">{pkg.capacity} guests</div>
-                      </div>
+                    <div className="position-absolute bottom-0 end-0 m-3">
+                      <span className="badge-minimal">
+                        {activeImage + 1} / {images.length}
+                      </span>
                     </div>
-                  </div>
+                  </>
                 )}
-                {pkg.duration && (
-                  <div className="col-auto">
-                    <div className="d-flex align-items-center gap-2 px-3 py-2 rounded-3 bg-light border">
-                      <i className="bi bi-clock-fill text-success"></i>
-                      <div>
-                        <div className="small text-muted">Duration</div>
-                        <div className="fw-semibold small">{pkg.duration}</div>
-                      </div>
+              </div>
+
+              {/* Thumbnail Strip */}
+              {images.length > 1 && (
+                <div className="d-flex gap-2 overflow-auto pb-2">
+                  {images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveImage(idx)}
+                      className="p-0 border-0 rounded-2 overflow-hidden flex-shrink-0"
+                      style={{
+                        width: '84px',
+                        height: '64px',
+                        opacity: activeImage === idx ? 1 : 0.6,
+                        border:
+                          activeImage === idx
+                            ? '2px solid var(--brand-gold)'
+                            : '1px solid var(--border-subtle)',
+                        transition: 'all 0.2s ease',
+                      }}
+                      aria-label={`Thumbnail ${idx + 1}`}
+                    >
+                      <img src={img} alt="" className="w-100 h-100" style={{ objectFit: 'cover' }} />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Description & Narrative */}
+              <div className="mt-5 pt-3">
+                <div className="editorial-eyebrow">
+                  <span>Architecture & Concept</span>
+                </div>
+                <h2 className="font-display fs-2 mb-3">About this Experience</h2>
+                <p
+                  className="text-secondary"
+                  style={{ fontSize: '1.05rem', lineHeight: 1.8, whiteSpace: 'pre-line' }}
+                >
+                  {pkg.description}
+                </p>
+
+                {/* Inclusions Matrix */}
+                {pkg.inclusions?.length > 0 && (
+                  <div className="mt-5 pt-4 border-top" style={{ borderColor: 'var(--border-hairline)' }}>
+                    <h3 className="font-display fs-4 mb-4">Included Signature Elements</h3>
+                    <div className="row g-3">
+                      {pkg.inclusions.map((item, idx) => (
+                        <div key={idx} className="col-md-6">
+                          <div
+                            className="p-3 rounded-2 h-100 d-flex align-items-start gap-2"
+                            style={{
+                              backgroundColor: 'var(--bg-surface)',
+                              border: '1px solid var(--border-subtle)',
+                            }}
+                          >
+                            <CheckCircle2
+                              size={18}
+                              style={{ color: 'var(--brand-gold)', flexShrink: 0, marginTop: '2px' }}
+                            />
+                            <span className="small fw-medium text-primary">{item}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Description */}
-              {pkg.description && (
-                <div className="mb-4">
-                  <h5 className="fw-bold mb-2">About This Package</h5>
-                  <p className="text-muted lh-relaxed">{pkg.description}</p>
+            {/* Sticky Reservation Sidebar */}
+            <div className="col-lg-5">
+              <div
+                className="position-sticky p-4 rounded-3 shadow-sm"
+                style={{
+                  top: '100px',
+                  backgroundColor: 'var(--bg-surface)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <span className="badge-minimal gold">{pkg.category || 'Curated'}</span>
+                  {pkg.isFeatured && <span className="badge-minimal">Featured Experience</span>}
                 </div>
-              )}
 
-              {/* Inclusions */}
-              {pkg.inclusions?.length > 0 && (
-                <div className="mb-4">
-                  <h5 className="fw-bold mb-3">
-                    <i className="bi bi-check-circle-fill text-success me-2"></i>
-                    What's Included
-                  </h5>
-                  <div className="d-flex flex-wrap gap-2">
-                    {pkg.inclusions.map((item, i) => (
-                      <span key={i} className="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
-                        <i className="bi bi-check2 me-1"></i>
-                        {item}
-                      </span>
-                    ))}
+                <h1 className="font-display fs-2 mb-2">{pkg.title}</h1>
+
+                <div className="d-flex align-items-baseline gap-2 mb-4">
+                  <span
+                    className="font-display fw-bold"
+                    style={{ fontSize: '2rem', color: 'var(--brand-gold)' }}
+                  >
+                    ₹{Number(pkg.price || 0).toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-muted small">base investment</span>
+                </div>
+
+                {/* Key Metrics */}
+                <div
+                  className="p-3 rounded-2 mb-4 d-flex justify-content-around text-center"
+                  style={{
+                    backgroundColor: 'var(--bg-surface-subtle)',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  <div>
+                    <div className="text-muted small d-flex align-items-center justify-content-center gap-1">
+                      <Users size={14} />
+                      <span>Capacity</span>
+                    </div>
+                    <div className="fw-semibold text-primary">{pkg.capacity || 200} Guests</div>
+                  </div>
+
+                  <div style={{ width: '1px', backgroundColor: 'var(--border-subtle)' }} />
+
+                  <div>
+                    <div className="text-muted small d-flex align-items-center justify-content-center gap-1">
+                      <Clock size={14} />
+                      <span>Duration</span>
+                    </div>
+                    <div className="fw-semibold text-primary">{pkg.duration || 'Full Event'}</div>
                   </div>
                 </div>
-              )}
 
-              {/* CTA */}
-              <div className="d-flex gap-3 flex-wrap mt-4 pt-2 border-top">
+                {/* Direct Action Trigger */}
                 <Link
                   to="/book"
                   state={{ packageId: pkg._id }}
-                  className="btn btn-primary btn-lg px-5 rounded-pill fw-bold flex-grow-1"
+                  className="btn-luxury-primary w-100 justify-content-center py-3 mb-3 text-decoration-none"
+                  style={{ fontSize: '0.95rem' }}
                 >
-                  <i className="bi bi-calendar-check me-2"></i>
-                  Book This Package
+                  <span>Reserve This Package</span>
+                  <ArrowUpRight size={16} />
                 </Link>
+
                 <Link
                   to="/contact"
-                  className="btn btn-outline-secondary btn-lg rounded-pill"
+                  className="btn-luxury-outline w-100 justify-content-center py-3 mb-4 text-decoration-none"
+                  style={{ fontSize: '0.9rem' }}
                 >
-                  <i className="bi bi-chat me-1"></i>
-                  Enquire
+                  <PhoneCall size={15} />
+                  <span>Request Custom Consultation</span>
                 </Link>
+
+                {/* Assurances */}
+                <div className="pt-3 border-top small text-muted" style={{ borderColor: 'var(--border-hairline)' }}>
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <ShieldCheck size={16} className="text-success" />
+                    <span>Dedicated Master Production Director</span>
+                  </div>
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <Calendar size={16} className="text-success" />
+                    <span>Flexible date rescheduling prior to lock-in</span>
+                  </div>
+                  <div className="d-flex align-items-center gap-2">
+                    <Sparkles size={16} className="text-success" />
+                    <span>Complete transparent cost breakdown</span>
+                  </div>
+                </div>
               </div>
-
-              <p className="text-muted small mt-3">
-                <i className="bi bi-shield-check text-success me-1"></i>
-                Free consultation • No hidden charges • 100% satisfaction
-              </p>
             </div>
-          </div>
-
-          {/* Back link */}
-          <div className="mt-5 pt-3 border-top">
-            <Link to="/packages" className="btn btn-outline-secondary rounded-pill">
-              <i className="bi bi-arrow-left me-2"></i>
-              Back to All Packages
-            </Link>
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

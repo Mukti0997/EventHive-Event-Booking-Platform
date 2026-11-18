@@ -1,86 +1,78 @@
-const CATEGORIES = ['', 'birthday', 'wedding', 'corporate', 'anniversary', 'other'];
+import { Search, X } from 'lucide-react';
+
+const CATEGORIES = ['', 'wedding', 'corporate', 'birthday', 'anniversary', 'other'];
 
 const CATEGORY_LABELS = {
-  '': 'All Packages',
-  birthday: 'Birthday',
-  wedding: 'Wedding',
+  '': 'All Collections',
+  wedding: 'Weddings',
   corporate: 'Corporate',
-  anniversary: 'Anniversary',
-  other: 'Other',
+  birthday: 'Birthdays',
+  anniversary: 'Anniversaries',
+  other: 'Bespoke / Other',
 };
 
-/**
- * Clean, flat category filter buttons + search bar for packages listing.
- */
 const PackageFilters = ({ selectedCategory, onCategoryChange, search, onSearchChange }) => {
   return (
-    <div className="mb-4">
-      {/* Search Input */}
-      <div className="input-group mb-3" style={{ maxWidth: '420px' }}>
-        <span
-          className="input-group-text border-end-0"
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            borderColor: 'var(--border-subtle)',
-            color: 'var(--text-muted)',
-            paddingLeft: '14px',
-          }}
-        >
-          <i className="bi bi-search" aria-hidden="true" />
-        </span>
-        <input
-          type="text"
-          className="form-control border-start-0"
-          placeholder="Search by package name or description..."
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          aria-label="Search packages"
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            borderColor: 'var(--border-subtle)',
-            fontSize: '14px',
-          }}
-        />
-        {search && (
-          <button
-            className="btn btn-outline-secondary border-start-0"
-            onClick={() => onSearchChange('')}
-            aria-label="Clear search"
-            type="button"
-            style={{
-              borderColor: 'var(--border-subtle)',
-              color: 'var(--text-muted)',
-            }}
-          >
-            <i className="bi bi-x-lg" aria-hidden="true" />
-          </button>
-        )}
-      </div>
+    <div className="mb-5">
+      <div className="row g-3 align-items-center justify-content-between">
+        {/* Category Pills */}
+        <div className="col-lg-8 col-12">
+          <div className="d-flex flex-wrap gap-2">
+            {CATEGORIES.map((cat) => {
+              const isActive = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`btn py-2 px-3 rounded-2 transition-all ${
+                    isActive ? 'btn-dark' : 'btn-outline-secondary border-subtle'
+                  }`}
+                  style={{
+                    fontSize: '0.825rem',
+                    fontWeight: isActive ? 600 : 500,
+                    letterSpacing: '0.01em',
+                    backgroundColor: isActive ? 'var(--brand-primary)' : 'var(--bg-surface)',
+                    color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                    borderColor: isActive ? 'var(--brand-primary)' : 'var(--border-subtle)',
+                  }}
+                  onClick={() => onCategoryChange(cat)}
+                >
+                  {CATEGORY_LABELS[cat]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-      {/* Category Pills/Tabs */}
-      <div className="d-flex flex-wrap gap-2">
-        {CATEGORIES.map((cat) => {
-          const isActive = selectedCategory === cat;
-          return (
-            <button
-              key={cat}
-              type="button"
-              className="btn btn-tactile"
-              style={{
-                fontSize: '13px',
-                fontWeight: isActive ? 600 : 500,
-                padding: '6px 14px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: isActive ? 'var(--brand-primary)' : 'var(--bg-surface)',
-                color: isActive ? '#ffffff' : 'var(--text-secondary)',
-                borderColor: isActive ? 'var(--brand-primary)' : 'var(--border-subtle)',
-              }}
-              onClick={() => onCategoryChange(cat)}
+        {/* Search Input */}
+        <div className="col-lg-4 col-12">
+          <div className="position-relative">
+            <span
+              className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
+              style={{ pointerEvents: 'none' }}
             >
-              {CATEGORY_LABELS[cat]}
-            </button>
-          );
-        })}
+              <Search size={16} />
+            </span>
+            <input
+              type="text"
+              className="form-control-luxury ps-5 pe-5"
+              placeholder="Search by occasion or title..."
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              aria-label="Search packages"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => onSearchChange('')}
+                className="btn position-absolute top-50 end-0 translate-middle-y me-2 p-1 border-0 text-muted"
+                aria-label="Clear search"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

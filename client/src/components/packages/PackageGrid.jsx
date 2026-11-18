@@ -1,4 +1,5 @@
 import PackageCard from './PackageCard';
+import { Search } from 'lucide-react';
 
 /**
  * Responsive grid layout for package cards.
@@ -8,10 +9,9 @@ const PackageGrid = ({ packages }) => {
   if (!packages || packages.length === 0) {
     return (
       <div
-        className="text-center py-5 my-4"
+        className="text-center py-5 my-4 p-5 rounded-3"
         style={{
           border: '1px dashed var(--border-medium)',
-          borderRadius: 'var(--radius-md)',
           backgroundColor: 'var(--bg-surface)',
         }}
       >
@@ -24,10 +24,12 @@ const PackageGrid = ({ packages }) => {
             backgroundColor: 'var(--bg-surface-subtle)',
           }}
         >
-          <i className="bi bi-search" style={{ fontSize: '1.25rem' }} aria-hidden="true" />
+          <Search size={22} />
         </div>
-        <h4 className="fw-bold mb-2" style={{ fontSize: '1.15rem' }}>No matching packages</h4>
-        <p className="text-muted small mb-0" style={{ maxWidth: '360px', margin: '0 auto' }}>
+        <h4 className="fw-semibold mb-2" style={{ fontSize: '1.15rem' }}>
+          No matching packages found
+        </h4>
+        <p className="text-muted small mb-0" style={{ maxWidth: '380px', margin: '0 auto' }}>
           Try clearing your search query or selecting a different event category filter.
         </p>
       </div>
@@ -35,9 +37,9 @@ const PackageGrid = ({ packages }) => {
   }
 
   return (
-    <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+    <div className="row g-4">
       {packages.map((pkg) => (
-        <div className="col" key={pkg._id}>
+        <div className="col-lg-4 col-md-6" key={pkg._id}>
           <PackageCard pkg={pkg} />
         </div>
       ))}

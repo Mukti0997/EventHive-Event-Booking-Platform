@@ -1,25 +1,43 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { getPackages } from '../services/packageService';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 import PackageFilters from '../components/packages/PackageFilters';
 import PackageGrid from '../components/packages/PackageGrid';
+import useParallax from '../hooks/useParallax';
 
 const ITEMS_PER_PAGE = 9;
 const SEARCH_DEBOUNCE_MS = 300;
 
 export default function Packages() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialCategory = searchParams.get('category') || '';
+
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [search, setSearch] = useState('');             // raw input value
-  const [debouncedSearch, setDebouncedSearch] = useState(''); // value sent to API
-  const [category, setCategory] = useState('');
+  const [totalCount, setTotalCount] = useState(0);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [category, setCategory] = useState(initialCategory);
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Debounce the search input; resetting to page 1 happens in the same batch
+  const headerParallax = useParallax(-0.1);
+
+  // Sync category state if URL params change
+  useEffect(() => {
+    const paramCat = searchParams.get('category');
+    if (paramCat !== null && paramCat !== category) {
+      setCategory(paramCat);
+      setPage(1);
+    }
+  }, [searchParams]);
+
+  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search.trim());
@@ -28,7 +46,7 @@ export default function Packages() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Single source of truth for fetching
+  // Fetch packages from API
   useEffect(() => {
     let ignore = false;
 
@@ -47,9 +65,10 @@ export default function Packages() {
 
         const list = Array.isArray(data) ? data : data?.packages ?? [];
         setPackages(list);
+        setTotalCount(data?.total || list.length);
         setTotalPages(
           data?.totalPages ||
-            Math.ceil((data?.total || 0) / ITEMS_PER_PAGE) ||
+            Math.ceil((data?.total || list.length) / ITEMS_PER_PAGE) ||
             1
         );
       } catch (err) {
@@ -62,19 +81,24 @@ export default function Packages() {
 
     load();
     return () => {
-      ignore = true; // discard responses from superseded requests
+      ignore = true;
     };
   }, [page, debouncedSearch, category, reloadKey]);
 
   const handleCategoryChange = (val) => {
     setCategory(val);
     setPage(1);
+    if (val) {
+      setSearchParams({ category: val });
+    } else {
+      setSearchParams({});
+    }
   };
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages || newPage === page) return;
     setPage(newPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 200, behavior: 'smooth' });
   };
 
   const handleClearFilters = () => {
@@ -82,6 +106,7 @@ export default function Packages() {
     setDebouncedSearch('');
     setCategory('');
     setPage(1);
+    setSearchParams({});
   };
 
   const handleRetry = () => setReloadKey((k) => k + 1);
@@ -107,30 +132,44 @@ export default function Packages() {
   const hasFilters = Boolean(debouncedSearch || category);
 
   return (
-    <>
-      {/* Page Header */}
+    <div className="packages-page">
+      {/* Editorial Header with subtle parallax */}
       <section
-        className="py-5 text-white text-center"
+        className="position-relative overflow-hidden py-5"
         style={{
-          backgroundColor: '#0d1b6e',
-          minHeight: '260px',
-          display: 'flex',
-          alignItems: 'center',
+          backgroundColor: 'var(--bg-surface-subtle)',
+          borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div className="container py-3">
-          <span className="badge bg-white bg-opacity-15 text-white fw-normal mb-3 px-3 py-2">
-            All Packages
-          </span>
-          <h1 className="display-5 fw-bold mb-2">Event Packages</h1>
-          <p className="lead opacity-75 mb-0">
-            Discover the perfect package for your celebration
+        <div
+          className="position-absolute end-0 top-0 w-50 h-100 opacity-25 will-change-transform"
+          style={{
+            transform: `translate3d(0, ${headerParallax}px, 0)`,
+            backgroundImage:
+              'radial-gradient(circle at 70% 30%, rgba(154, 107, 47, 0.15), transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div className="container py-4 position-relative" style={{ zIndex: 1 }}>
+          <div className="editorial-eyebrow">
+            <span>Portfolio & Collections</span>
+          </div>
+          <h1
+            className="font-display mb-3"
+            style={{ fontSize: 'clamp(2.25rem, 5vw, 3.5rem)', fontWeight: 600 }}
+          >
+            Curated Event Packages
+          </h1>
+          <p className="text-secondary mb-0" style={{ maxWidth: '640px', fontSize: '1.05rem' }}>
+            Thoughtfully engineered packages that balance creative ambition with meticulous logistics.
+            Select a package to view inclusions or customize your celebration.
           </p>
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="py-5 bg-light">
+      {/* Main Content Area */}
+      <section className="py-5">
         <div className="container">
           <PackageFilters
             search={search}
@@ -139,107 +178,98 @@ export default function Packages() {
             onCategoryChange={handleCategoryChange}
           />
 
-          {/* Results summary */}
+          {/* Result Metadata & Clear Button */}
           {!loading && !error && (
-            <div className="d-flex align-items-center justify-content-between mb-4">
-              <p className="text-muted mb-0 small">
-                {packages.length === 0
-                  ? 'No packages found'
-                  : `Showing ${packages.length} package${packages.length !== 1 ? 's' : ''}`}
-                {debouncedSearch && (
-                  <span>
-                    {' '}for <strong>"{debouncedSearch}"</strong>
-                  </span>
-                )}
-                {category && (
-                  <span>
-                    {' '}in <strong>{category}</strong>
-                  </span>
-                )}
-              </p>
+            <div className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom" style={{ borderColor: 'var(--border-hairline)' }}>
+              <div className="small text-secondary">
+                Showing{' '}
+                <strong className="text-primary">{packages.length}</strong> of{' '}
+                <strong className="text-primary">{totalCount}</strong> package
+                {totalCount !== 1 ? 's' : ''}
+                {debouncedSearch && <span> matching “{debouncedSearch}”</span>}
+                {category && <span className="text-capitalize"> in {category}</span>}
+              </div>
+
               {hasFilters && (
                 <button
-                  className="btn btn-sm btn-outline-secondary rounded-pill"
+                  type="button"
                   onClick={handleClearFilters}
+                  className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 border-0"
+                  style={{ fontSize: '0.8rem' }}
                 >
-                  <i className="bi bi-x me-1"></i>
-                  Clear Filters
+                  <X size={14} />
+                  <span>Reset Filters</span>
                 </button>
               )}
             </div>
           )}
 
-          {/* Content states */}
+          {/* Loading, Error or Grid */}
           {loading ? (
-            <div className="py-5">
+            <div className="py-5 text-center">
               <Loader />
             </div>
           ) : error ? (
-            <ErrorMessage message={error} onRetry={handleRetry} />
-          ) : packages.length === 0 ? (
-            <div className="text-center py-5">
-              <i className="bi bi-search fs-1 text-muted d-block mb-3 opacity-40"></i>
-              <h5 className="text-muted fw-semibold">No packages found</h5>
-              <p className="text-muted small">
-                Try adjusting your search or filter criteria.
-              </p>
+            <div className="py-5">
+              <ErrorMessage message={error} onRetry={handleRetry} />
             </div>
           ) : (
             <PackageGrid packages={packages} />
           )}
 
-          {/* Pagination */}
+          {/* Pagination Controls */}
           {!loading && !error && totalPages > 1 && (
-            <nav className="mt-5" aria-label="Package pagination">
-              <ul className="pagination justify-content-center flex-wrap gap-1">
-                <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                  <button
-                    className="page-link rounded-pill px-3"
-                    onClick={() => handlePageChange(page - 1)}
-                    disabled={page === 1}
-                    aria-label="Previous page"
-                  >
-                    <i className="bi bi-chevron-left"></i>
-                  </button>
-                </li>
+            <nav className="mt-5 pt-3" aria-label="Package pagination">
+              <div className="d-flex justify-content-center align-items-center gap-2">
+                <button
+                  type="button"
+                  className="btn btn-luxury-outline p-2"
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1}
+                  aria-label="Previous Page"
+                >
+                  <ChevronLeft size={16} />
+                </button>
 
                 {getPaginationRange().map((p, i) =>
                   p === '...' ? (
-                    <li key={`ellipsis-${i}`} className="page-item disabled">
-                      <span className="page-link rounded-pill px-3">…</span>
-                    </li>
+                    <span key={`dots-${i}`} className="px-2 text-muted">
+                      …
+                    </span>
                   ) : (
-                    <li key={p} className={`page-item ${p === page ? 'active' : ''}`}>
-                      <button
-                        className="page-link rounded-pill px-3"
-                        onClick={() => handlePageChange(p)}
-                        aria-current={p === page ? 'page' : undefined}
-                      >
-                        {p}
-                      </button>
-                    </li>
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => handlePageChange(p)}
+                      className={`btn px-3 py-2 ${
+                        p === page ? 'btn-luxury-primary' : 'btn-luxury-outline'
+                      }`}
+                      style={{ fontSize: '0.85rem' }}
+                      aria-current={p === page ? 'page' : undefined}
+                    >
+                      {p}
+                    </button>
                   )
                 )}
 
-                <li className={`page-item ${page === totalPages ? 'disabled' : ''}`}>
-                  <button
-                    className="page-link rounded-pill px-3"
-                    onClick={() => handlePageChange(page + 1)}
-                    disabled={page === totalPages}
-                    aria-label="Next page"
-                  >
-                    <i className="bi bi-chevron-right"></i>
-                  </button>
-                </li>
-              </ul>
+                <button
+                  type="button"
+                  className="btn btn-luxury-outline p-2"
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages}
+                  aria-label="Next Page"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
 
-              <p className="text-center text-muted small mt-2">
+              <div className="text-center text-muted small mt-3">
                 Page {page} of {totalPages}
-              </p>
+              </div>
             </nav>
           )}
         </div>
       </section>
-    </>
+    </div>
   );
 }
