@@ -1,38 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  FolderKanban,
+  Sparkles,
+  CheckCircle2,
+  XCircle,
+  ArrowUpRight,
+  Package,
+  Users,
+  Calendar,
+} from 'lucide-react';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import Loader from '../../components/common/Loader';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import { getBookingStats, getBookings } from '../../services/bookingService';
 import { useAuth } from '../../context/AuthContext';
 
-// ─── StatCard ────────────────────────────────────────────────────────────────
-const StatCard = ({ title, value, icon, color }) => (
-  <div className="col-12 col-sm-6 col-xl-3">
-    <div className={`card border-0 text-white ${color} shadow-sm h-100`}>
-      <div className="card-body d-flex align-items-center gap-3">
-        <div style={{ fontSize: '2.4rem', lineHeight: 1 }}>{icon}</div>
-        <div>
-          <div className="fs-2 fw-bold lh-1">{value ?? '—'}</div>
-          <div className="small opacity-75 mt-1">{title}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// ─── Status badge helper ──────────────────────────────────────────────────────
-const statusVariant = (status) => {
-  const map = {
-    new: 'primary',
-    contacted: 'info',
-    confirmed: 'success',
-    cancelled: 'danger',
-  };
-  return map[status] || 'secondary';
-};
-
-// ─── AdminDashboard ───────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const { admin } = useAuth();
 
@@ -74,86 +57,114 @@ const AdminDashboard = () => {
 
   const statCards = [
     {
-      title: 'Total Leads',
-      value: stats?.total,
-      icon: '📁',
-      color: 'bg-primary',
+      title: 'Total Inquiries',
+      value: stats?.total ?? 0,
+      icon: FolderKanban,
+      color: 'var(--text-primary)',
     },
     {
-      title: 'New Leads',
-      value: stats?.new,
-      icon: '🆕',
-      color: 'bg-info',
+      title: 'New / Uncontacted',
+      value: stats?.new ?? 0,
+      icon: Sparkles,
+      color: 'var(--brand-gold)',
     },
     {
-      title: 'Confirmed',
-      value: stats?.confirmed,
-      icon: '✅',
-      color: 'bg-success',
+      title: 'Confirmed Bookings',
+      value: stats?.confirmed ?? 0,
+      icon: CheckCircle2,
+      color: '#15803d',
     },
     {
-      title: 'Cancelled',
-      value: stats?.cancelled,
-      icon: '❌',
-      color: 'bg-danger',
+      title: 'Archived / Cancelled',
+      value: stats?.cancelled ?? 0,
+      icon: XCircle,
+      color: '#b91c1c',
     },
   ];
 
   return (
-    <div className="d-flex" style={{ minHeight: '100vh', background: '#f0f4f8' }}>
+    <div className="d-flex" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-canvas)' }}>
       <AdminSidebar />
 
-      <main className="flex-grow-1 p-4">
+      <main className="flex-grow-1 p-4 p-md-5 overflow-auto">
         {/* Header */}
-        <div className="mb-4">
-          <h4 className="fw-bold mb-0" style={{ color: '#0d1b2a' }}>
-            👋 Welcome back, {admin?.name || 'Admin'}!
-          </h4>
-          <p className="text-muted small mb-0">Here's what's happening with EventHive today.</p>
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-3">
+          <div>
+            <div className="editorial-eyebrow mb-1">
+              <span>Production Control Console</span>
+            </div>
+            <h1 className="font-display fs-2 fw-bold mb-1">
+              Welcome back, {admin?.name || 'Administrator'}
+            </h1>
+            <p className="text-secondary small mb-0">
+              Overview of current event bookings, guest tiers, and inquiry statuses.
+            </p>
+          </div>
+
+          <div className="d-flex gap-2">
+            <Link to="/admin/leads" className="btn-luxury-primary" style={{ fontSize: '0.825rem' }}>
+              <Users size={15} />
+              <span>Manage Inquiries</span>
+            </Link>
+            <Link to="/admin/packages" className="btn-luxury-outline" style={{ fontSize: '0.825rem' }}>
+              <Package size={15} />
+              <span>Catalog</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Stat Cards */}
+        {/* Metric KPI Cards */}
         {loadingStats ? (
-          <Loader />
+          <div className="py-4 text-center">
+            <Loader />
+          </div>
         ) : statsError ? (
           <ErrorMessage message={statsError} />
         ) : (
-          <div className="row g-3 mb-4">
-            {statCards.map((card) => (
-              <StatCard key={card.title} {...card} />
-            ))}
+          <div className="row g-4 mb-5">
+            {statCards.map((c) => {
+              const Icon = c.icon;
+              return (
+                <div key={c.title} className="col-12 col-sm-6 col-xl-3">
+                  <div
+                    className="card-luxury p-4 h-100"
+                    style={{ backgroundColor: 'var(--bg-surface)' }}
+                  >
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <span className="small fw-semibold text-muted text-uppercase" style={{ letterSpacing: '0.04em' }}>
+                        {c.title}
+                      </span>
+                      <Icon size={18} style={{ color: c.color }} />
+                    </div>
+                    <div
+                      className="font-display fw-bold"
+                      style={{ fontSize: '2.25rem', color: 'var(--text-primary)', lineHeight: 1 }}
+                    >
+                      {c.value}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {/* Quick Links */}
-        <div className="d-flex gap-2 mb-4 flex-wrap">
-          <Link
-            to="/admin/leads"
-            className="btn btn-sm fw-semibold"
-            style={{ background: '#0d1b2a', color: '#f5a623', border: 'none' }}
-          >
-            📋 Manage Leads
-          </Link>
-          <Link
-            to="/admin/packages"
-            className="btn btn-sm fw-semibold"
-            style={{ background: '#f5a623', color: '#0d1b2a', border: 'none' }}
-          >
-            📦 Manage Packages
-          </Link>
-        </div>
-
-        {/* Recent Bookings Table */}
-        <div className="card border-0 shadow-sm">
-          <div
-            className="card-header border-0 fw-semibold"
-            style={{ background: '#0d1b2a', color: '#f5a623' }}
-          >
-            🕐 5 Most Recent Bookings
+        {/* Recent Inquiries High-Density Table */}
+        <div className="card-luxury" style={{ backgroundColor: 'var(--bg-surface)' }}>
+          <div className="d-flex justify-content-between align-items-center p-4 border-bottom" style={{ borderColor: 'var(--border-subtle)' }}>
+            <h2 className="fs-5 fw-semibold mb-0">Recent Event Inquiries</h2>
+            <Link
+              to="/admin/leads"
+              className="text-primary text-decoration-none small fw-semibold d-inline-flex align-items-center gap-1 hover-gold"
+            >
+              <span>View All Inquiries</span>
+              <ArrowUpRight size={14} />
+            </Link>
           </div>
-          <div className="card-body p-0">
+
+          <div className="p-0">
             {loadingBookings ? (
-              <div className="p-4">
+              <div className="p-5 text-center">
                 <Loader />
               </div>
             ) : bookingsError ? (
@@ -161,27 +172,27 @@ const AdminDashboard = () => {
                 <ErrorMessage message={bookingsError} />
               </div>
             ) : recentBookings.length === 0 ? (
-              <div className="p-4 text-center text-muted">No bookings found.</div>
+              <div className="p-5 text-center text-muted small">No inquiries found.</div>
             ) : (
               <div className="table-responsive">
-                <table className="table table-hover mb-0 align-middle">
-                  <thead style={{ background: '#f8f9fa' }}>
+                <table className="table-luxury">
+                  <thead>
                     <tr>
-                      <th className="px-3">Name</th>
-                      <th>Email</th>
-                      <th>Event Type</th>
-                      <th>Event Date</th>
-                      <th>Package</th>
+                      <th>Host Name</th>
+                      <th>Contact Email</th>
+                      <th>Occasion</th>
+                      <th>Target Date</th>
+                      <th>Package Reference</th>
                       <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recentBookings.map((b) => (
                       <tr key={b._id}>
-                        <td className="px-3 fw-medium">{b.name}</td>
-                        <td className="text-muted small">{b.email}</td>
-                        <td>{b.eventType || '—'}</td>
-                        <td>
+                        <td className="fw-semibold">{b.name}</td>
+                        <td className="text-secondary small">{b.email}</td>
+                        <td className="text-capitalize">{b.eventType || 'Bespoke'}</td>
+                        <td className="small">
                           {b.eventDate
                             ? new Date(b.eventDate).toLocaleDateString('en-IN', {
                                 day: '2-digit',
@@ -190,10 +201,10 @@ const AdminDashboard = () => {
                               })
                             : '—'}
                         </td>
-                        <td>{b.package?.title || b.packageName || '—'}</td>
+                        <td>{b.package?.title || b.packageName || 'Custom Scope'}</td>
                         <td>
-                          <span className={`badge bg-${statusVariant(b.status)} text-capitalize`}>
-                            {b.status}
+                          <span className={`status-pill ${b.status || 'new'}`}>
+                            {b.status || 'new'}
                           </span>
                         </td>
                       </tr>
@@ -202,15 +213,6 @@ const AdminDashboard = () => {
                 </table>
               </div>
             )}
-          </div>
-          <div className="card-footer bg-transparent border-0 text-end">
-            <Link
-              to="/admin/leads"
-              className="btn btn-sm"
-              style={{ color: '#0d1b2a', fontWeight: 600 }}
-            >
-              View All Leads →
-            </Link>
           </div>
         </div>
       </main>

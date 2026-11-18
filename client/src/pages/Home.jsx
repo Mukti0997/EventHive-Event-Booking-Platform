@@ -1,147 +1,285 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  ArrowUpRight,
+  Sparkles,
+  Users,
+  ChevronRight,
+  Shield,
+  Star,
+} from 'lucide-react';
 import { getPackages } from '../services/packageService';
 import Loader from '../components/common/Loader';
+import useParallax from '../hooks/useParallax';
+import useCounter from '../hooks/useCounter';
 
-const steps = [
+const marqueeItems = [
+  'Grand Weddings',
+  'Corporate Galas',
+  'Milestone Birthdays',
+  'Curated Soirées',
+  'Luxury Receptions',
+  'Destination Celebrations',
+  'Executive Summits',
+  'Anniversary Banquets',
+];
+
+const pillars = [
   {
     number: '01',
-    icon: 'bi-grid-1x2',
-    title: 'Find the right package',
+    title: 'Vision & Architecture',
     description:
-      'Browse event packages by occasion and budget. Each package gives you a clear starting point for planning.',
+      'We begin with your aesthetic narrative. Every celebration is tailored from a blank canvas, aligning mood, culinary choices, and flow to your personality.',
   },
   {
     number: '02',
-    icon: 'bi-calendar-check',
-    title: 'Share your event details',
+    title: 'Curated Vendor Network',
     description:
-      'Choose a date, tell us what you have in mind, and send your booking request. Our team will get back to you.',
+      'Gain privileged access to our vetted coterie of master florists, Michelin-level caterers, bespoke lighting designers, and acousticians.',
   },
   {
     number: '03',
-    icon: 'bi-balloon-heart',
-    title: 'Enjoy your celebration',
+    title: 'Flawless Execution',
     description:
-      'We coordinate the details so you can spend less time managing arrangements and more time with your guests.',
+      'On the day of the event, our seasoned production directors coordinate every minute cue invisibly so you remain fully present in the moment.',
   },
 ];
 
 const testimonials = [
   {
-    name: 'Sneha & Arjun Kapoor',
-    event: 'Wedding Reception',
-    initials: 'SA',
     quote:
-      "EventHive turned our dream wedding into reality. Every detail was thoughtfully handled, from the floral arrangements to the live music. We couldn't have asked for a better evening.",
+      'EventHive transformed our wedding in Mathura into an ethereal royal sanctuary. Every single floral arrangement, lighting cue, and transition was executed with sheer architectural perfection.',
+    author: 'Sneha & Arjun Kapoor',
+    location: 'Wedding at Heritage Palace, Mathura',
+    rating: 5,
   },
   {
-    name: 'Ramesh Agarwal',
-    event: 'Corporate Annual Day',
-    initials: 'RA',
     quote:
-      'The team was professional, organised, and easy to work with. Our 200-person corporate event ran smoothly, and the planning process was clear from start to finish.',
+      'Organizing our 350-attendee annual tech summit was effortless thanks to EventHive. Their team anticipates logistics with remarkable composure and precision.',
+    author: 'Ramesh Agarwal',
+    location: 'Managing Director, Apex Dynamics',
+    rating: 5,
   },
   {
-    name: 'Pooja Sharma',
-    event: "Daughter's Birthday",
-    initials: 'PS',
     quote:
-      "My daughter's seventh birthday was wonderful. The decorations, cake, and entertainment came together beautifully, and she had a day she won't forget.",
+      'From the live jazz quartet to the bespoke sensory dining, my milestone celebration was unforgettable. Truly the premier event management atelier in North India.',
+    author: 'Pooja Sharma',
+    location: 'Milestone Celebration, New Delhi',
+    rating: 5,
   },
 ];
 
-const categories = [
-  { icon: 'bi-balloon-heart', label: 'Birthdays', detail: 'Fun, personal celebrations' },
-  { icon: 'bi-gem', label: 'Weddings', detail: 'Your day, thoughtfully planned' },
-  { icon: 'bi-briefcase', label: 'Corporate', detail: 'Events that bring teams together' },
-  { icon: 'bi-heart', label: 'Anniversaries', detail: 'Meaningful moments, made special' },
-];
+function StatItem({ value, label, suffix = '+' }) {
+  const [count, ref] = useCounter(value, 1800);
 
-const stats = [
-  { value: '500+', label: 'Events organised' },
-  { value: '1,000+', label: 'Happy clients' },
-  { value: '10+', label: 'Years of experience' },
-];
+  return (
+    <div ref={ref} className="text-center p-3">
+      <div
+        className="font-display fw-bold mb-1"
+        style={{
+          fontSize: 'clamp(2.5rem, 5vw, 3.75rem)',
+          color: 'var(--text-primary)',
+          letterSpacing: '-0.03em',
+          lineHeight: 1,
+        }}
+      >
+        {count}
+        <span style={{ color: 'var(--brand-gold)' }}>{suffix}</span>
+      </div>
+      <div
+        style={{
+          fontSize: '0.8rem',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color: 'var(--text-muted)',
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const [featuredPackages, setFeaturedPackages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Parallax offsets
+  const bgParallax = useParallax(-0.12);
+  const cardParallax = useParallax(0.06);
 
   useEffect(() => {
+    let ignore = false;
     const fetchFeatured = async () => {
       try {
         const data = await getPackages({ featured: true, limit: 6 });
-        setFeaturedPackages(data.packages || data || []);
+        if (!ignore) {
+          setFeaturedPackages(data.packages || data || []);
+        }
       } catch (err) {
         console.error('Failed to fetch featured packages:', err);
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
     fetchFeatured();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
+  const filteredPackages =
+    selectedCategory === 'all'
+      ? featuredPackages
+      : featuredPackages.filter(
+          (pkg) => pkg.category?.toLowerCase() === selectedCategory.toLowerCase()
+        );
+
   return (
-    <main className="event-home">
-      {/* Hero */}
-      <section className="event-hero">
-        <div className="container py-5">
+    <div className="home-container">
+      {/* =========================================================================
+          HERO SECTION (Minimalist Typography & Parallax)
+          ========================================================================= */}
+      <section className="parallax-hero-wrapper pt-5 pb-5">
+        <div className="parallax-decor-grid" aria-hidden="true" />
+        <div
+          className="parallax-bg-glow will-change-transform"
+          style={{ transform: `translate3d(0, ${bgParallax}px, 0)` }}
+          aria-hidden="true"
+        />
+
+        <div className="container position-relative py-5" style={{ zIndex: 1 }}>
           <div className="row align-items-center g-5">
             <div className="col-lg-7">
-              <span className="event-eyebrow">
-                <i className="bi bi-geo-alt me-2" aria-hidden="true" />
-                Event planning in Mathura
-              </span>
+              <div className="editorial-eyebrow">
+                <span>Atelier of Curated Celebrations</span>
+              </div>
 
-              <h1 className="event-hero-title">
-                Make room for
-                <span> moments that matter.</span>
+              <h1
+                className="font-display mb-4"
+                style={{
+                  fontSize: 'clamp(2.75rem, 6vw, 4.75rem)',
+                  lineHeight: 1.08,
+                  fontWeight: 600,
+                }}
+              >
+                Make room for <br />
+                <span className="italic-serif" style={{ color: 'var(--brand-gold)' }}>
+                  moments that matter.
+                </span>
               </h1>
 
-              <p className="event-hero-copy">
-                From birthdays and anniversaries to weddings and corporate gatherings,
-                EventHive helps you plan a celebration that feels like yours.
+              <p
+                className="mb-5 text-secondary"
+                style={{
+                  fontSize: '1.15rem',
+                  lineHeight: 1.8,
+                  maxWidth: '560px',
+                }}
+              >
+                EventHive conceives, designs, and flawlessly produces celebrations of distinction.
+                From grand destination weddings to intimate galas and high-profile corporate summits.
               </p>
 
-              <div className="d-flex flex-wrap gap-3">
-                <Link to="/packages" className="btn event-btn-primary btn-lg">
-                  Explore packages <i className="bi bi-arrow-right ms-2" aria-hidden="true" />
+              <div className="d-flex flex-wrap align-items-center gap-3">
+                <Link to="/packages" className="btn-luxury-primary">
+                  <span>Explore Collections</span>
+                  <ArrowUpRight size={16} />
                 </Link>
-                <Link to="/book" className="btn event-btn-outline btn-lg">
-                  Plan your event
+
+                <Link to="/book" className="btn-luxury-outline">
+                  <span>Schedule Consultation</span>
                 </Link>
               </div>
 
-              <div className="event-stats" aria-label="EventHive at a glance">
-                {stats.map((stat) => (
-                  <div className="event-stat" key={stat.label}>
-                    <strong>{stat.value}</strong>
-                    <span>{stat.label}</span>
-                  </div>
-                ))}
+              {/* Trust Badges */}
+              <div className="d-flex flex-wrap align-items-center gap-4 mt-5 pt-3 border-top" style={{ borderColor: 'var(--border-subtle)' }}>
+                <div className="d-flex align-items-center gap-2">
+                  <Shield size={16} style={{ color: 'var(--brand-gold)' }} />
+                  <span className="small text-muted fw-medium">Certified Event Producers</span>
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                  <Star size={16} style={{ color: 'var(--brand-gold)' }} />
+                  <span className="small text-muted fw-medium">4.9/5 Across 500+ Reviews</span>
+                </div>
               </div>
             </div>
 
+            {/* Hero Visual Composition with Parallax Tilt */}
             <div className="col-lg-5">
-              <div className="event-category-panel">
-                <div className="mb-3">
-                  <p className="event-panel-kicker mb-1">A celebration for every occasion</p>
-                  <h2 className="h4 fw-bold mb-0">What are you planning?</h2>
-                </div>
-                <div className="row g-3">
-                  {categories.map((category) => (
-                    <div className="col-6" key={category.label}>
-                      <Link to="/packages" className="event-category">
-                        <span className="event-category-icon">
-                          <i className={`bi ${category.icon}`} aria-hidden="true" />
-                        </span>
-                        <strong>{category.label}</strong>
-                        <small>{category.detail}</small>
-                      </Link>
+              <div
+                className="position-relative will-change-transform"
+                style={{ transform: `translate3d(0, ${cardParallax}px, 0)` }}
+              >
+                {/* Hero Editorial Card */}
+                <div
+                  className="card-luxury p-3 shadow-lg"
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    transform: 'rotate(1deg)',
+                  }}
+                >
+                  <div
+                    className="card-luxury-image-wrap rounded-3 mb-3"
+                    style={{ height: '380px' }}
+                  >
+                    <img
+                      src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1000&q=80"
+                      alt="Luxurious wedding event decor"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-end p-2">
+                    <div>
+                      <span className="badge-minimal gold mb-1">Signature Experience</span>
+                      <h3 className="fs-5 mb-0 fw-semibold">The Royal Courtyard</h3>
                     </div>
-                  ))}
+                    <Link
+                      to="/packages"
+                      className="btn-luxury-primary py-2 px-3"
+                      style={{ fontSize: '0.75rem' }}
+                    >
+                      <span>View</span>
+                      <ChevronRight size={13} />
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Floating Parallax Pill */}
+                <div
+                  className="position-absolute d-none d-sm-flex align-items-center gap-3 p-3 rounded-3 shadow-md"
+                  style={{
+                    bottom: '-24px',
+                    left: '-32px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid var(--border-subtle)',
+                    zIndex: 2,
+                  }}
+                >
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded-circle"
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      backgroundColor: 'var(--brand-gold-light)',
+                      color: 'var(--brand-gold)',
+                    }}
+                  >
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <div className="fw-semibold text-primary" style={{ fontSize: '0.85rem' }}>
+                      Bespoke Tailoring
+                    </div>
+                    <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                      100% custom itinerary & design
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -149,763 +287,343 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured packages */}
-      <section className="event-section" id="featured-packages">
-        <div className="container">
-          <div className="event-section-heading">
+      {/* =========================================================================
+          KINETIC TICKER (Infinite Smooth Marquee)
+          ========================================================================= */}
+      <section className="ticker-wrap" aria-label="Event specializations">
+        <div className="ticker-track">
+          {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((item, index) => (
+            <div key={index} className="ticker-item">
+              <span>{item}</span>
+              <span className="ticker-dot" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          CURATED PACKAGES SHOWCASE
+          ========================================================================= */}
+      <section className="py-5 my-4">
+        <div className="container py-4">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-end mb-5 gap-3">
             <div>
-              <span className="event-kicker">A good place to start</span>
-              <h2>Explore our featured packages</h2>
-              <p>
-                Take a look at some of our popular options. Find one you like, then
-                personalise the details for your event.
+              <div className="editorial-eyebrow">
+                <span>Curated Portfolios</span>
+              </div>
+              <h2 className="font-display fs-1 mb-2">Signature Packages</h2>
+              <p className="text-muted mb-0" style={{ maxWidth: '520px' }}>
+                Pre-conceived event architectures thoughtfully priced with premier amenities, fully
+                adaptable to your guest tier.
               </p>
             </div>
-            <Link to="/packages" className="event-text-link">
-              See all packages <i className="bi bi-arrow-right ms-1" aria-hidden="true" />
-            </Link>
+
+            {/* Filter Pills */}
+            <div className="d-flex flex-wrap gap-2">
+              {['all', 'wedding', 'corporate', 'birthday', 'anniversary'].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`btn py-2 px-3 text-capitalize rounded-2 transition-all ${
+                    selectedCategory === cat
+                      ? 'btn-dark'
+                      : 'btn-outline-secondary border-subtle'
+                  }`}
+                  style={{
+                    fontSize: '0.825rem',
+                    fontWeight: 500,
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {cat === 'all' ? 'All Occasions' : cat}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* Packages Display */}
           {loading ? (
             <div className="py-5 text-center">
               <Loader />
             </div>
-          ) : featuredPackages.length === 0 ? (
-            <div className="event-empty-state">
-              <i className="bi bi-calendar2-event" aria-hidden="true" />
-              <h3>No featured packages right now</h3>
-              <p>Browse all available packages to find an option for your celebration.</p>
-              <Link to="/packages" className="btn event-btn-primary">
-                Browse all packages
-              </Link>
+          ) : filteredPackages.length === 0 ? (
+            <div className="text-center py-5 border rounded-3 p-5" style={{ backgroundColor: 'var(--bg-surface)' }}>
+              <p className="text-muted mb-3">No packages currently match this category.</p>
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('all')}
+                className="btn-luxury-outline"
+              >
+                <span>View All Collections</span>
+              </button>
             </div>
           ) : (
-            <>
-              <div className="row g-4">
-                {featuredPackages.map((pkg) => (
-                  <div key={pkg._id} className="col-md-6 col-lg-4">
-                    <article className="card event-package-card h-100">
-                      <div className="event-package-image">
-                        {pkg.images?.[0] ? (
-                          <img
-                            src={pkg.images[0]}
-                            alt={pkg.title || pkg.name || 'Event package'}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="event-image-placeholder">
-                            <i className="bi bi-image" aria-hidden="true" />
-                            <span>Package image coming soon</span>
-                          </div>
-                        )}
-                        {pkg.category && (
-                          <span className="event-package-category">{pkg.category}</span>
-                        )}
-                      </div>
+            <div className="row g-4">
+              {filteredPackages.map((pkg) => {
+                const fallbackImg =
+                  'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80';
+                const image = pkg.images?.[0] || fallbackImg;
 
-                      <div className="card-body d-flex flex-column p-4">
-                        <h3 className="event-package-title">{pkg.title || pkg.name}</h3>
-                        <p className="event-package-description">
-                          {pkg.shortDescription || pkg.description?.slice(0, 115) ||
-                            'A thoughtfully prepared package to help you get your event started.'}
-                          {!pkg.shortDescription && pkg.description?.length > 115 ? '…' : ''}
-                        </p>
-
-                        <div className="event-package-meta mt-auto">
-                          {pkg.price ? (
-                            <div>
-                              <small>Starting from</small>
-                              <strong>₹{pkg.price.toLocaleString('en-IN')}</strong>
-                            </div>
-                          ) : (
-                            <div>
-                              <small>Pricing</small>
-                              <strong>Ask for details</strong>
-                            </div>
-                          )}
-                          {pkg.capacity && (
-                            <span>
-                              <i className="bi bi-people me-1" aria-hidden="true" />
-                              Up to {pkg.capacity} guests
+                return (
+                  <div key={pkg._id} className="col-lg-4 col-md-6">
+                    <div className="card-luxury h-100 d-flex flex-column">
+                      <div className="card-luxury-image-wrap" style={{ height: '240px' }}>
+                        <img
+                          src={image}
+                          alt={pkg.title}
+                          onError={(e) => {
+                            e.target.src = fallbackImg;
+                          }}
+                        />
+                        <div className="position-absolute top-0 start-0 m-3 d-flex gap-2">
+                          <span className="badge-minimal">
+                            {pkg.category || 'Package'}
+                          </span>
+                          {pkg.isFeatured && (
+                            <span className="badge-minimal gold">
+                              Featured
                             </span>
                           )}
                         </div>
-
-                        <Link to={`/packages/${pkg._id}`} className="btn event-btn-card w-100 mt-3">
-                          View package details
-                          <i className="bi bi-arrow-right ms-2" aria-hidden="true" />
-                        </Link>
                       </div>
-                    </article>
+
+                      <div className="p-4 d-flex flex-column flex-grow-1">
+                        <div className="d-flex justify-content-between align-items-baseline mb-2">
+                          <h3 className="fs-5 mb-0 fw-semibold">{pkg.title}</h3>
+                          <span
+                            className="font-display fw-bold"
+                            style={{ color: 'var(--brand-gold)', fontSize: '1.25rem' }}
+                          >
+                            ₹{pkg.price?.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+
+                        <p
+                          className="text-secondary small mb-3 flex-grow-1"
+                          style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {pkg.description}
+                        </p>
+
+                        <div
+                          className="d-flex align-items-center justify-content-between pt-3 border-top mt-auto"
+                          style={{ borderColor: 'var(--border-hairline)' }}
+                        >
+                          <div className="d-flex align-items-center gap-1 text-muted small">
+                            <Users size={14} />
+                            <span>Up to {pkg.capacity || 200} guests</span>
+                          </div>
+
+                          <Link
+                            to={`/packages/${pkg._id}`}
+                            className="text-primary text-decoration-none fw-semibold small d-inline-flex align-items-center gap-1 hover-gold"
+                          >
+                            <span>Explore Details</span>
+                            <ArrowUpRight size={14} />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="text-center mt-5">
+            <Link to="/packages" className="btn-luxury-outline px-4">
+              <span>View Complete Portfolio ({featuredPackages.length} Available)</span>
+              <ArrowUpRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          THE ATELIER METHOD (01, 02, 03 Pillars)
+          ========================================================================= */}
+      <section
+        className="py-5"
+        style={{
+          backgroundColor: 'var(--bg-surface-subtle)',
+          borderTop: '1px solid var(--border-subtle)',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div className="container py-5">
+          <div className="row g-5 align-items-center">
+            <div className="col-lg-4">
+              <div className="editorial-eyebrow">
+                <span>The Production Method</span>
+              </div>
+              <h2 className="font-display fs-1 mb-3">
+                How We Bring <br />
+                <span className="italic-serif">Vision to Reality</span>
+              </h2>
+              <p className="text-secondary" style={{ lineHeight: 1.7 }}>
+                We treat every event not merely as logistics, but as a temporary architecture of
+                memory. Each stage is managed by a dedicated production lead.
+              </p>
+              <Link to="/about" className="btn-luxury-primary mt-2">
+                <span>Our Philosophy</span>
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+
+            <div className="col-lg-8">
+              <div className="row g-4">
+                {pillars.map((pillar) => (
+                  <div key={pillar.number} className="col-md-4">
+                    <div
+                      className="p-4 rounded-3 h-100"
+                      style={{
+                        backgroundColor: 'var(--bg-surface)',
+                        border: '1px solid var(--border-subtle)',
+                      }}
+                    >
+                      <div
+                        className="font-display fw-bold mb-3"
+                        style={{
+                          fontSize: '2rem',
+                          color: 'var(--brand-gold)',
+                          letterSpacing: '-0.02em',
+                        }}
+                      >
+                        {pillar.number}
+                      </div>
+                      <h3 className="fs-5 fw-semibold mb-2">{pillar.title}</h3>
+                      <p className="text-secondary small mb-0" style={{ lineHeight: 1.6 }}>
+                        {pillar.description}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
-
-              <div className="text-center mt-4">
-                <Link to="/packages" className="btn event-btn-outline-dark">
-                  View all packages
-                </Link>
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="event-section event-section-soft">
-        <div className="container">
-          <div className="event-centered-heading">
-            <span className="event-kicker">Clear from the start</span>
-            <h2>Planning your event is simple</h2>
-            <p>Three straightforward steps take you from an idea to a day worth remembering.</p>
-          </div>
-
-          <div className="row g-4">
-            {steps.map((step) => (
-              <div className="col-md-4" key={step.number}>
-                <article className="event-step-card h-100">
-                  <div className="event-step-top">
-                    <span className="event-step-icon">
-                      <i className={`bi ${step.icon}`} aria-hidden="true" />
-                    </span>
-                    <span className="event-step-number">{step.number}</span>
-                  </div>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                </article>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="event-section">
-        <div className="container">
-          <div className="event-section-heading">
-            <div>
-              <span className="event-kicker">Kind words from our clients</span>
-              <h2>Good memories. Real experiences.</h2>
-              <p>Here is what clients have shared about their EventHive celebrations.</p>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="row g-4">
-            {testimonials.map((testimonial) => (
-              <div className="col-md-4" key={testimonial.name}>
-                <article className="event-testimonial h-100">
-                  <div className="event-stars" aria-label={`${testimonial.rating || 5} out of 5 stars`}>
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <i className="bi bi-star-fill" key={index} aria-hidden="true" />
-                    ))}
-                  </div>
-                  <blockquote>“{testimonial.quote}”</blockquote>
-                  <div className="event-reviewer">
-                    <span className="event-reviewer-avatar">{testimonial.initials}</span>
-                    <span>
-                      <strong>{testimonial.name}</strong>
-                      <small>{testimonial.event}</small>
-                    </span>
-                  </div>
-                </article>
-              </div>
-            ))}
+      {/* =========================================================================
+          NUMERIC ROLLUP METRICS SECTION
+          ========================================================================= */}
+      <section className="py-5">
+        <div className="container py-4">
+          <div className="row g-4 justify-content-center">
+            <div className="col-6 col-md-3">
+              <StatItem value={500} label="Events Orchestrated" />
+            </div>
+            <div className="col-6 col-md-3">
+              <StatItem value={1200} label="Celebrated Families" />
+            </div>
+            <div className="col-6 col-md-3">
+              <StatItem value={12} label="Years Production Exp" />
+            </div>
+            <div className="col-6 col-md-3">
+              <StatItem value={99} label="Flawless Execution %" suffix="%" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Final call to action */}
-      <section className="event-final-cta">
-        <div className="container">
-          <div className="event-cta-content">
-            <span className="event-kicker">Let's make it happen</span>
-            <h2>Have a date in mind?</h2>
-            <p>
-              Tell us what you are celebrating and what you need. We will help you work
-              out the next steps.
+      {/* =========================================================================
+          CLIENT REVIEWS & TESTIMONIALS
+          ========================================================================= */}
+      <section
+        className="py-5"
+        style={{
+          backgroundColor: 'var(--bg-dark)',
+          color: 'var(--text-inverse)',
+        }}
+      >
+        <div className="container py-5">
+          <div className="text-center max-w-xl mx-auto mb-5">
+            <div className="editorial-eyebrow text-warning mb-2">
+              <span>Client Testimonials</span>
+            </div>
+            <h2 className="font-display fs-1 text-white mb-3">Words from Hosts</h2>
+            <p className="text-white-50" style={{ maxWidth: '600px', margin: '0 auto' }}>
+              Reflections from families and corporate partners whose most important milestones we
+              had the honor of shaping.
             </p>
-            <div className="d-flex flex-wrap justify-content-center gap-3">
-              <Link to="/book" className="btn event-btn-primary btn-lg">
-                Start planning <i className="bi bi-arrow-right ms-2" aria-hidden="true" />
-              </Link>
-              <Link to="/contact" className="btn event-btn-outline btn-lg">
-                Contact our team
-              </Link>
-            </div>
+          </div>
+
+          <div className="row g-4">
+            {testimonials.map((t, index) => (
+              <div key={index} className="col-lg-4 col-md-6">
+                <div
+                  className="p-4 rounded-3 h-100 d-flex flex-column justify-content-between"
+                  style={{
+                    backgroundColor: 'var(--bg-dark-card)',
+                    border: '1px solid var(--bg-dark-border)',
+                  }}
+                >
+                  <div>
+                    <div className="d-flex gap-1 text-warning mb-3">
+                      {[...Array(t.rating)].map((_, i) => (
+                        <Star key={i} size={15} fill="#D4AF37" color="#D4AF37" />
+                      ))}
+                    </div>
+                    <p
+                      className="text-white-50 fst-italic mb-4"
+                      style={{ fontSize: '0.95rem', lineHeight: 1.7 }}
+                    >
+                      “{t.quote}”
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-top" style={{ borderColor: 'var(--bg-dark-border)' }}>
+                    <div className="fw-semibold text-white fs-6">{t.author}</div>
+                    <div className="text-muted small">{t.location}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <style>{`
-        .event-home {
-          --event-ink: #202b3c;
-          --event-muted: #667085;
-          --event-primary: #2457a6;
-          --event-primary-dark: #193f7c;
-          --event-border: #e4e8ef;
-          color: var(--event-ink);
-          background: #ffffff;
-        }
-
-        .event-home .event-hero {
-          display: flex;
-          align-items: center;
-          min-height: 620px;
-          background: #f4f6f9;
-          border-bottom: 1px solid var(--event-border);
-        }
-
-        .event-eyebrow,
-        .event-kicker {
-          display: inline-flex;
-          align-items: center;
-          color: var(--event-primary);
-          font-size: .78rem;
-          font-weight: 700;
-          letter-spacing: .09em;
-          line-height: 1.4;
-          text-transform: uppercase;
-        }
-
-        .event-eyebrow {
-          padding: .55rem .8rem;
-          margin-bottom: 1.5rem;
-          border: 1px solid #d7e1f0;
-          border-radius: 999px;
-          background: #ffffff;
-          letter-spacing: .035em;
-          text-transform: none;
-        }
-
-        .event-hero-title {
-          max-width: 680px;
-          margin: 0 0 1.25rem;
-          color: var(--event-ink);
-          font-size: clamp(2.7rem, 5vw, 4.5rem);
-          font-weight: 800;
-          letter-spacing: -.055em;
-          line-height: 1.06;
-        }
-
-        .event-hero-title span {
-          display: block;
-          color: var(--event-primary);
-        }
-
-        .event-hero-copy {
-          max-width: 570px;
-          margin-bottom: 2rem;
-          color: var(--event-muted);
-          font-size: 1.12rem;
-          line-height: 1.8;
-        }
-
-        .event-btn-primary,
-        .event-btn-outline,
-        .event-btn-outline-dark,
-        .event-btn-card {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 48px;
-          padding: .75rem 1.25rem;
-          border-radius: 8px;
-          font-weight: 700;
-          transition: background-color .18s ease, border-color .18s ease, color .18s ease;
-        }
-
-        .event-btn-primary {
-          color: #ffffff;
-          border: 1px solid var(--event-primary);
-          background: var(--event-primary);
-        }
-
-        .event-btn-primary:hover,
-        .event-btn-primary:focus {
-          color: #ffffff;
-          border-color: var(--event-primary-dark);
-          background: var(--event-primary-dark);
-        }
-
-        .event-btn-outline {
-          color: var(--event-primary);
-          border: 1px solid #b9c8dc;
-          background: #ffffff;
-        }
-
-        .event-btn-outline:hover,
-        .event-btn-outline:focus {
-          color: var(--event-primary-dark);
-          border-color: var(--event-primary);
-          background: #f7f9fc;
-        }
-
-        .event-btn-outline-dark {
-          color: var(--event-ink);
-          border: 1px solid #cbd2dc;
-          background: #ffffff;
-        }
-
-        .event-btn-outline-dark:hover,
-        .event-btn-outline-dark:focus,
-        .event-btn-card:hover,
-        .event-btn-card:focus {
-          color: var(--event-primary-dark);
-          border-color: var(--event-primary);
-          background: #f4f7fb;
-        }
-
-        .event-stats {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 2rem;
-          margin-top: 3rem;
-          padding-top: 1.5rem;
-          border-top: 1px solid #dce2eb;
-        }
-
-        .event-stat {
-          display: flex;
-          flex-direction: column;
-          gap: .2rem;
-        }
-
-        .event-stat strong {
-          color: var(--event-ink);
-          font-size: 1.55rem;
-          line-height: 1.2;
-        }
-
-        .event-stat span {
-          color: var(--event-muted);
-          font-size: .84rem;
-        }
-
-        .event-category-panel {
-          padding: 1.5rem;
-          border: 1px solid var(--event-border);
-          border-radius: 14px;
-          background: #ffffff;
-          box-shadow: 0 12px 32px rgba(32, 43, 60, .06);
-        }
-
-        .event-panel-kicker {
-          color: var(--event-muted);
-          font-size: .82rem;
-        }
-
-        .event-category {
-          display: flex;
-          min-height: 150px;
-          flex-direction: column;
-          align-items: flex-start;
-          justify-content: center;
-          padding: 1rem;
-          border: 1px solid var(--event-border);
-          border-radius: 10px;
-          color: var(--event-ink);
-          text-decoration: none;
-          transition: border-color .18s ease, background-color .18s ease;
-        }
-
-        .event-category:hover {
-          border-color: #a9bdd8;
-          background: #f7f9fc;
-          color: var(--event-primary);
-        }
-
-        .event-category-icon {
-          display: grid;
-          width: 38px;
-          height: 38px;
-          margin-bottom: .75rem;
-          place-items: center;
-          border-radius: 9px;
-          color: var(--event-primary);
-          background: #edf2f9;
-          font-size: 1.2rem;
-        }
-
-        .event-category strong {
-          margin-bottom: .2rem;
-          font-size: .95rem;
-        }
-
-        .event-category small {
-          color: var(--event-muted);
-          font-size: .75rem;
-          line-height: 1.4;
-        }
-
-        .event-section {
-          padding: 5.25rem 0;
-          background: #ffffff;
-        }
-
-        .event-section-soft {
-          background: #f4f6f9;
-        }
-
-        .event-section-heading {
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          gap: 2rem;
-          margin-bottom: 2rem;
-        }
-
-        .event-section-heading h2,
-        .event-centered-heading h2 {
-          margin: .55rem 0 .65rem;
-          color: var(--event-ink);
-          font-size: clamp(1.8rem, 3vw, 2.5rem);
-          font-weight: 800;
-          letter-spacing: -.035em;
-        }
-
-        .event-section-heading p,
-        .event-centered-heading p {
-          max-width: 620px;
-          margin: 0;
-          color: var(--event-muted);
-          line-height: 1.7;
-        }
-
-        .event-text-link {
-          flex-shrink: 0;
-          padding-bottom: .3rem;
-          color: var(--event-primary);
-          font-weight: 700;
-          text-decoration: none;
-        }
-
-        .event-text-link:hover {
-          color: var(--event-primary-dark);
-          text-decoration: underline;
-        }
-
-        .event-package-card {
-          overflow: hidden;
-          border: 1px solid var(--event-border);
-          border-radius: 12px;
-          background: #ffffff;
-          box-shadow: 0 4px 16px rgba(32, 43, 60, .045);
-          transition: transform .18s ease, box-shadow .18s ease;
-        }
-
-        .event-package-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 12px 28px rgba(32, 43, 60, .09);
-        }
-
-        .event-package-image {
-          position: relative;
-          height: 210px;
-          overflow: hidden;
-          background: #edf1f6;
-        }
-
-        .event-package-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .event-image-placeholder {
-          display: flex;
-          width: 100%;
-          height: 100%;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: .5rem;
-          color: #7b8798;
-        }
-
-        .event-image-placeholder i {
-          font-size: 2rem;
-        }
-
-        .event-image-placeholder span {
-          font-size: .8rem;
-        }
-
-        .event-package-category {
-          position: absolute;
-          top: 1rem;
-          left: 1rem;
-          padding: .35rem .65rem;
-          border-radius: 5px;
-          color: var(--event-primary-dark);
-          background: #ffffff;
-          font-size: .75rem;
-          font-weight: 700;
-        }
-
-        .event-package-title {
-          margin-bottom: .6rem;
-          color: var(--event-ink);
-          font-size: 1.12rem;
-          font-weight: 750;
-        }
-
-        .event-package-description {
-          min-height: 4.4rem;
-          margin-bottom: 1.2rem;
-          color: var(--event-muted);
-          font-size: .9rem;
-          line-height: 1.65;
-        }
-
-        .event-package-meta {
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          gap: .75rem;
-          padding-top: 1rem;
-          border-top: 1px solid var(--event-border);
-        }
-
-        .event-package-meta div {
-          display: flex;
-          flex-direction: column;
-          gap: .15rem;
-        }
-
-        .event-package-meta small {
-          color: var(--event-muted);
-          font-size: .75rem;
-        }
-
-        .event-package-meta strong {
-          color: var(--event-primary);
-          font-size: 1.15rem;
-        }
-
-        .event-package-meta > span {
-          color: var(--event-muted);
-          font-size: .78rem;
-          white-space: nowrap;
-        }
-
-        .event-btn-card {
-          color: var(--event-primary);
-          border: 1px solid #c5d2e2;
-          background: #ffffff;
-        }
-
-        .event-empty-state {
-          padding: 3rem 1rem;
-          border: 1px dashed #cbd2dc;
-          border-radius: 12px;
-          text-align: center;
-        }
-
-        .event-empty-state > i {
-          color: var(--event-primary);
-          font-size: 2rem;
-        }
-
-        .event-empty-state h3 {
-          margin: .8rem 0 .4rem;
-          font-size: 1.2rem;
-          font-weight: 750;
-        }
-
-        .event-empty-state p {
-          color: var(--event-muted);
-        }
-
-        .event-centered-heading {
-          max-width: 680px;
-          margin: 0 auto 2.25rem;
-          text-align: center;
-        }
-
-        .event-centered-heading p {
-          margin: 0 auto;
-        }
-
-        .event-step-card {
-          padding: 1.75rem;
-          border: 1px solid var(--event-border);
-          border-radius: 12px;
-          background: #ffffff;
-        }
-
-        .event-step-top {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1.5rem;
-        }
-
-        .event-step-icon {
-          display: grid;
-          width: 52px;
-          height: 52px;
-          place-items: center;
-          border-radius: 10px;
-          color: var(--event-primary);
-          background: #edf2f9;
-          font-size: 1.4rem;
-        }
-
-        .event-step-number {
-          color: #a5afbd;
-          font-size: 1.1rem;
-          font-weight: 800;
-        }
-
-        .event-step-card h3 {
-          margin-bottom: .65rem;
-          font-size: 1.12rem;
-          font-weight: 750;
-        }
-
-        .event-step-card p {
-          margin: 0;
-          color: var(--event-muted);
-          font-size: .92rem;
-          line-height: 1.7;
-        }
-
-        .event-testimonial {
-          display: flex;
-          flex-direction: column;
-          padding: 1.6rem;
-          border: 1px solid var(--event-border);
-          border-radius: 12px;
-          background: #ffffff;
-        }
-
-        .event-stars {
-          display: flex;
-          gap: .25rem;
-          margin-bottom: 1rem;
-          color: #b7791f;
-          font-size: .85rem;
-        }
-
-        .event-testimonial blockquote {
-          flex: 1;
-          margin: 0 0 1.5rem;
-          color: #475467;
-          font-size: .94rem;
-          line-height: 1.75;
-        }
-
-        .event-reviewer {
-          display: flex;
-          align-items: center;
-          gap: .8rem;
-          padding-top: 1rem;
-          border-top: 1px solid var(--event-border);
-        }
-
-        .event-reviewer-avatar {
-          display: grid;
-          width: 42px;
-          height: 42px;
-          flex-shrink: 0;
-          place-items: center;
-          border-radius: 50%;
-          color: var(--event-primary-dark);
-          background: #edf2f9;
-          font-size: .82rem;
-          font-weight: 800;
-        }
-
-        .event-reviewer span:last-child {
-          display: flex;
-          flex-direction: column;
-          gap: .15rem;
-        }
-
-        .event-reviewer strong {
-          color: var(--event-ink);
-          font-size: .86rem;
-        }
-
-        .event-reviewer small {
-          color: var(--event-muted);
-          font-size: .78rem;
-        }
-
-        .event-final-cta {
-          padding: 4.5rem 0;
-          border-top: 1px solid var(--event-border);
-          background: #f4f6f9;
-        }
-
-        .event-cta-content {
-          max-width: 720px;
-          margin: 0 auto;
-          text-align: center;
-        }
-
-        .event-cta-content h2 {
-          margin: .65rem 0;
-          color: var(--event-ink);
-          font-size: clamp(2rem, 4vw, 3rem);
-          font-weight: 800;
-          letter-spacing: -.04em;
-        }
-
-        .event-cta-content p {
-          max-width: 570px;
-          margin: 0 auto 1.75rem;
-          color: var(--event-muted);
-          line-height: 1.75;
-        }
-
-        @media (max-width: 991.98px) {
-          .event-home .event-hero {
-            min-height: auto;
-          }
-
-          .event-category-panel {
-            max-width: 620px;
-          }
-        }
-
-        @media (max-width: 767.98px) {
-          .event-section {
-            padding: 3.75rem 0;
-          }
-
-          .event-section-heading {
-            align-items: flex-start;
-            flex-direction: column;
-            gap: .8rem;
-          }
-
-          .event-hero-title {
-            font-size: clamp(2.5rem, 11vw, 3.6rem);
-          }
-
-          .event-stats {
-            gap: 1.25rem;
-          }
-
-          .event-stat strong {
-            font-size: 1.3rem;
-          }
-
-          .event-category {
-            min-height: 135px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .event-home *,
-          .event-home *::before,
-          .event-home *::after {
-            scroll-behavior: auto !important;
-            transition-duration: .01ms !important;
-          }
-        }
-      `}</style>
-    </main>
+      {/* =========================================================================
+          FINAL PARALLAX CALL TO ACTION
+          ========================================================================= */}
+      <section className="py-5 text-center position-relative overflow-hidden">
+        <div className="container py-5 position-relative" style={{ zIndex: 1 }}>
+          <div className="editorial-eyebrow justify-content-center">
+            <span>Your Next Milestone</span>
+          </div>
+          <h2
+            className="font-display mb-3"
+            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 600 }}
+          >
+            Let us craft your next <br />
+            <span className="italic-serif" style={{ color: 'var(--brand-gold)' }}>
+              unforgettable experience.
+            </span>
+          </h2>
+          <p
+            className="text-secondary mx-auto mb-4"
+            style={{ maxWidth: '540px', fontSize: '1.05rem' }}
+          >
+            Dates for prime celebration seasons fill months in advance. Secure a private design
+            consultation with our event directors.
+          </p>
+          <div className="d-flex justify-content-center gap-3">
+            <Link to="/book" className="btn-luxury-primary px-4 py-3">
+              <span>Initiate Event Inquiry</span>
+              <ArrowUpRight size={16} />
+            </Link>
+            <Link to="/contact" className="btn-luxury-outline px-4 py-3">
+              <span>Connect with Atelier</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { Search, Eye, Trash2, X, FileText, CheckCircle2 } from 'lucide-react';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import Loader from '../../components/common/Loader';
 import ErrorMessage from '../../components/common/ErrorMessage';
@@ -6,16 +7,6 @@ import Pagination from '../../components/common/Pagination';
 import { getBookings, updateBooking, deleteBooking } from '../../services/bookingService';
 
 const STATUS_OPTIONS = ['new', 'contacted', 'confirmed', 'cancelled'];
-
-const statusVariant = (status) => {
-  const map = {
-    new: 'primary',
-    contacted: 'info',
-    confirmed: 'success',
-    cancelled: 'danger',
-  };
-  return map[status] || 'secondary';
-};
 
 // ─── Detail Modal ─────────────────────────────────────────────────────────────
 const BookingModal = ({ booking, onClose, onUpdate }) => {
@@ -29,10 +20,10 @@ const BookingModal = ({ booking, onClose, onUpdate }) => {
     try {
       setSaving(true);
       await onUpdate(booking._id, { adminNotes: notes });
-      setSaveMsg('Saved!');
+      setSaveMsg('Saved successfully.');
       setTimeout(() => setSaveMsg(''), 2000);
     } catch {
-      setSaveMsg('Error saving notes.');
+      setSaveMsg('Failed to save notes.');
     } finally {
       setSaving(false);
     }
@@ -40,110 +31,107 @@ const BookingModal = ({ booking, onClose, onUpdate }) => {
 
   return (
     <div
-      className="modal d-block"
-      tabIndex="-1"
-      style={{ background: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
+      className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+      style={{ backgroundColor: 'rgba(9, 13, 22, 0.65)', backdropFilter: 'blur(4px)', zIndex: 1050 }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="modal-dialog modal-lg modal-dialog-scrollable">
-        <div className="modal-content">
-          <div
-            className="modal-header border-0"
-            style={{ background: '#0d1b2a', color: '#f5a623' }}
-          >
-            <h5 className="modal-title fw-bold">📋 Booking Details</h5>
-            <button
-              type="button"
-              className="btn-close btn-close-white"
-              onClick={onClose}
-            />
+      <div
+        className="card-luxury shadow-lg p-0"
+        style={{ width: '90%', maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto' }}
+      >
+        <div className="d-flex justify-content-between align-items-center p-4 border-bottom" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div>
+            <span className="editorial-eyebrow mb-1">Inquiry Dossier</span>
+            <h3 className="fs-5 fw-bold mb-0">Booking #{booking._id?.slice(-6)}</h3>
           </div>
-          <div className="modal-body">
-            <div className="row g-3">
-              <div className="col-md-6">
-                <small className="text-muted">Name</small>
-                <div className="fw-semibold">{booking.name}</div>
+          <button type="button" onClick={onClose} className="btn btn-sm p-1 border-0 text-muted">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-4">
+          <div className="row g-4 mb-4">
+            <div className="col-md-6">
+              <span className="text-muted small d-block">Host Name</span>
+              <div className="fw-semibold text-primary">{booking.name}</div>
+            </div>
+            <div className="col-md-6">
+              <span className="text-muted small d-block">Contact Email</span>
+              <div className="text-secondary">{booking.email}</div>
+            </div>
+            <div className="col-md-6">
+              <span className="text-muted small d-block">Mobile Phone</span>
+              <div className="text-secondary">{booking.phone || '—'}</div>
+            </div>
+            <div className="col-md-6">
+              <span className="text-muted small d-block">Occasion</span>
+              <div className="text-capitalize fw-medium">{booking.eventType || '—'}</div>
+            </div>
+            <div className="col-md-6">
+              <span className="text-muted small d-block">Target Event Date</span>
+              <div>
+                {booking.eventDate
+                  ? new Date(booking.eventDate).toLocaleDateString('en-IN', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    })
+                  : '—'}
               </div>
-              <div className="col-md-6">
-                <small className="text-muted">Email</small>
-                <div>{booking.email}</div>
+            </div>
+            <div className="col-md-6">
+              <span className="text-muted small d-block">Guest Scope</span>
+              <div>{booking.guestCount ? `${booking.guestCount} Guests` : '—'}</div>
+            </div>
+            <div className="col-md-6">
+              <span className="text-muted small d-block">Package Reference</span>
+              <div>{booking.package?.title || booking.packageName || 'Custom Inquiry'}</div>
+            </div>
+            <div className="col-md-6">
+              <span className="text-muted small d-block">Status Pipeline</span>
+              <div>
+                <span className={`status-pill ${booking.status}`}>{booking.status}</span>
               </div>
-              <div className="col-md-6">
-                <small className="text-muted">Phone</small>
-                <div>{booking.phone || '—'}</div>
-              </div>
-              <div className="col-md-6">
-                <small className="text-muted">Event Type</small>
-                <div className="text-capitalize">{booking.eventType || '—'}</div>
-              </div>
-              <div className="col-md-6">
-                <small className="text-muted">Event Date</small>
-                <div>
-                  {booking.eventDate
-                    ? new Date(booking.eventDate).toLocaleDateString('en-IN', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric',
-                      })
-                    : '—'}
-                </div>
-              </div>
-              <div className="col-md-6">
-                <small className="text-muted">Package</small>
-                <div>{booking.package?.title || booking.packageName || '—'}</div>
-              </div>
-              <div className="col-md-6">
-                <small className="text-muted">Status</small>
-                <div>
-                  <span
-                    className={`badge bg-${statusVariant(booking.status)} text-capitalize`}
-                  >
-                    {booking.status}
-                  </span>
-                </div>
-              </div>
-              <div className="col-md-6">
-                <small className="text-muted">Submitted</small>
-                <div>
-                  {booking.createdAt
-                    ? new Date(booking.createdAt).toLocaleString('en-IN')
-                    : '—'}
-                </div>
-              </div>
-              {booking.message && (
-                <div className="col-12">
-                  <small className="text-muted">Message from Client</small>
-                  <div
-                    className="p-2 rounded small"
-                    style={{ background: '#f8f9fa', whiteSpace: 'pre-wrap' }}
-                  >
-                    {booking.message}
-                  </div>
-                </div>
-              )}
+            </div>
+            {booking.venue && (
               <div className="col-12">
-                <label className="form-label text-muted small mb-1">Admin Notes</label>
-                <textarea
-                  className="form-control"
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Internal notes about this lead…"
-                />
-                <div className="d-flex align-items-center gap-2 mt-2">
-                  <button
-                    className="btn btn-sm fw-semibold"
-                    style={{ background: '#0d1b2a', color: '#f5a623' }}
-                    onClick={handleSaveNotes}
-                    disabled={saving}
-                  >
-                    {saving ? 'Saving…' : 'Save Notes'}
-                  </button>
-                  {saveMsg && (
-                    <span className="small text-success">{saveMsg}</span>
-                  )}
+                <span className="text-muted small d-block">Preferred Venue</span>
+                <div className="small text-secondary">{booking.venue}</div>
+              </div>
+            )}
+            {booking.message && (
+              <div className="col-12">
+                <span className="text-muted small d-block">Client Vision Notes</span>
+                <div
+                  className="p-3 rounded-2 small text-secondary mt-1"
+                  style={{ backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)' }}
+                >
+                  {booking.message}
                 </div>
               </div>
+            )}
+          </div>
+
+          <div className="border-top pt-3" style={{ borderColor: 'var(--border-hairline)' }}>
+            <label className="form-label-luxury">Internal Production Notes</label>
+            <textarea
+              className="form-control-luxury mb-2"
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Private notes about florist coordination, payment status, moodboard links..."
+            />
+            <div className="d-flex align-items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSaveNotes}
+                disabled={saving}
+                className="btn-luxury-primary py-2 px-3"
+                style={{ fontSize: '0.8rem' }}
+              >
+                <span>{saving ? 'Saving...' : 'Save Production Notes'}</span>
+              </button>
+              {saveMsg && <span className="small text-success">{saveMsg}</span>}
             </div>
           </div>
         </div>
@@ -153,7 +141,7 @@ const BookingModal = ({ booking, onClose, onUpdate }) => {
 };
 
 // ─── ManageLeads ──────────────────────────────────────────────────────────────
-const ManageLeads = () => {
+export default function ManageLeads() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -189,7 +177,6 @@ const ManageLeads = () => {
     fetchBookings();
   }, [fetchBookings]);
 
-  // Debounce search
   useEffect(() => {
     setPage(1);
   }, [search, statusFilter]);
@@ -201,7 +188,6 @@ const ManageLeads = () => {
       setBookings((prev) =>
         prev.map((b) => (b._id === id ? { ...b, status: updated?.status || status } : b))
       );
-      // Refresh selected booking in modal if open
       if (selectedBooking?._id === id) {
         setSelectedBooking((prev) => ({ ...prev, status: updated?.status || status }));
       }
@@ -221,7 +207,7 @@ const ManageLeads = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this booking? This cannot be undone.')) return;
+    if (!window.confirm('Delete this inquiry permanently?')) return;
     try {
       setDeletingId(id);
       await deleteBooking(id);
@@ -235,173 +221,167 @@ const ManageLeads = () => {
   };
 
   return (
-    <div className="d-flex" style={{ minHeight: '100vh', background: '#f0f4f8' }}>
+    <div className="d-flex" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-canvas)' }}>
       <AdminSidebar />
 
-      <main className="flex-grow-1 p-4">
-        {/* Header */}
-        <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
-          <div>
-            <h4 className="fw-bold mb-0" style={{ color: '#0d1b2a' }}>
-              📋 Manage Leads
-            </h4>
-            <p className="text-muted small mb-0">View, update, and manage all booking inquiries.</p>
+      <main className="flex-grow-1 p-4 p-md-5 overflow-auto">
+        <div className="mb-4">
+          <div className="editorial-eyebrow mb-1">
+            <span>Inquiry Pipeline</span>
           </div>
+          <h1 className="font-display fs-2 fw-bold mb-1">Manage Inquiries & Leads</h1>
+          <p className="text-secondary small mb-0">
+            Track inquiries, update consultation status, and inspect guest requirements.
+          </p>
         </div>
 
         {/* Filters */}
-        <div className="card border-0 shadow-sm mb-4">
-          <div className="card-body">
-            <div className="row g-2 align-items-end">
-              <div className="col-12 col-md-6">
-                <label className="form-label small text-muted mb-1">Search</label>
+        <div
+          className="card-luxury p-3 mb-4"
+          style={{ backgroundColor: 'var(--bg-surface)' }}
+        >
+          <div className="row g-3 align-items-center">
+            <div className="col-12 col-md-6">
+              <div className="position-relative">
+                <Search size={16} className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
                 <input
                   type="text"
-                  className="form-control"
-                  placeholder="Search by name, email, phone…"
+                  className="form-control-luxury ps-5"
+                  placeholder="Search by client name, email, or mobile..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <div className="col-12 col-md-3">
-                <label className="form-label small text-muted mb-1">Status</label>
-                <select
-                  className="form-select"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="">All Statuses</option>
-                  {STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s} className="text-capitalize">
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-12 col-md-3">
-                <button
-                  className="btn w-100"
-                  style={{ background: '#0d1b2a', color: '#f5a623', border: 'none' }}
-                  onClick={() => {
-                    setSearch('');
-                    setStatusFilter('');
-                    setPage(1);
-                  }}
-                >
-                  Reset Filters
-                </button>
-              </div>
+            </div>
+
+            <div className="col-12 col-md-3">
+              <select
+                className="form-control-luxury"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">All Pipeline Statuses</option>
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s} className="text-capitalize">
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-12 col-md-3">
+              <button
+                type="button"
+                className="btn-luxury-outline w-100 justify-content-center"
+                style={{ fontSize: '0.825rem' }}
+                onClick={() => {
+                  setSearch('');
+                  setStatusFilter('');
+                  setPage(1);
+                }}
+              >
+                Reset Filters
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Inquiries Table */}
         {loading ? (
-          <Loader />
+          <div className="py-5 text-center">
+            <Loader />
+          </div>
         ) : error ? (
           <ErrorMessage message={error} />
         ) : bookings.length === 0 ? (
-          <div className="text-center text-muted py-5">No bookings found.</div>
+          <div className="text-center py-5 text-muted small card-luxury p-5">
+            No event inquiries match the specified filter.
+          </div>
         ) : (
-          <>
-            <div className="card border-0 shadow-sm mb-3">
-              <div className="table-responsive">
-                <table className="table table-hover align-middle mb-0">
-                  <thead style={{ background: '#0d1b2a', color: '#f5a623' }}>
-                    <tr>
-                      <th className="px-3">Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Event Type</th>
-                      <th>Event Date</th>
-                      <th>Package</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookings.map((b) => (
-                      <tr key={b._id}>
-                        <td className="px-3 fw-medium">{b.name}</td>
-                        <td className="text-muted small">{b.email}</td>
-                        <td className="small">{b.phone || '—'}</td>
-                        <td className="text-capitalize small">{b.eventType || '—'}</td>
-                        <td className="small">
-                          {b.eventDate
-                            ? new Date(b.eventDate).toLocaleDateString('en-IN', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                              })
-                            : '—'}
-                        </td>
-                        <td className="small">{b.package?.title || b.packageName || '—'}</td>
-                        <td>
-                          <span
-                            className={`badge bg-${statusVariant(b.status)} text-capitalize`}
+          <div className="card-luxury" style={{ backgroundColor: 'var(--bg-surface)' }}>
+            <div className="table-responsive">
+              <table className="table-luxury">
+                <thead>
+                  <tr>
+                    <th>Host Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Occasion</th>
+                    <th>Event Date</th>
+                    <th>Package</th>
+                    <th>Status</th>
+                    <th className="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookings.map((b) => (
+                    <tr key={b._id}>
+                      <td className="fw-semibold">{b.name}</td>
+                      <td className="text-secondary small">{b.email}</td>
+                      <td className="small">{b.phone || '—'}</td>
+                      <td className="text-capitalize small">{b.eventType || '—'}</td>
+                      <td className="small">
+                        {b.eventDate
+                          ? new Date(b.eventDate).toLocaleDateString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : '—'}
+                      </td>
+                      <td className="small">{b.package?.title || b.packageName || '—'}</td>
+                      <td>
+                        <select
+                          className={`status-pill ${b.status} border-0`}
+                          value={b.status}
+                          disabled={updatingId === b._id}
+                          onChange={(e) => handleStatusUpdate(b._id, e.target.value)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {STATUS_OPTIONS.map((s) => (
+                            <option key={s} value={s} className="text-capitalize bg-white text-dark">
+                              {s.charAt(0).toUpperCase() + s.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="text-end">
+                        <div className="d-inline-flex align-items-center gap-1">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-luxury-outline p-1 px-2"
+                            style={{ fontSize: '0.75rem' }}
+                            onClick={() => setSelectedBooking(b)}
+                            title="Inspect details"
                           >
-                            {b.status}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="d-flex align-items-center gap-1 flex-wrap">
-                            {/* View Details */}
-                            <button
-                              className="btn btn-sm"
-                              style={{
-                                background: '#e8f0fe',
-                                color: '#0d1b2a',
-                                fontSize: '0.75rem',
-                              }}
-                              onClick={() => setSelectedBooking(b)}
-                            >
-                              View
-                            </button>
-
-                            {/* Status Update */}
-                            <select
-                              className="form-select form-select-sm"
-                              style={{ width: 'auto', fontSize: '0.75rem' }}
-                              value={b.status}
-                              disabled={updatingId === b._id}
-                              onChange={(e) => handleStatusUpdate(b._id, e.target.value)}
-                            >
-                              {STATUS_OPTIONS.map((s) => (
-                                <option key={s} value={s} className="text-capitalize">
-                                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                                </option>
-                              ))}
-                            </select>
-
-                            {/* Delete */}
-                            <button
-                              className="btn btn-sm btn-danger"
-                              style={{ fontSize: '0.75rem' }}
-                              disabled={deletingId === b._id}
-                              onClick={() => handleDelete(b._id)}
-                            >
-                              {deletingId === b._id ? '…' : '🗑'}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                            <Eye size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger p-1 px-2 border-0"
+                            style={{ fontSize: '0.75rem' }}
+                            disabled={deletingId === b._id}
+                            onClick={() => handleDelete(b._id)}
+                            title="Delete inquiry"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            {/* Pagination */}
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-            />
-          </>
+            <div className="p-3 border-top" style={{ borderColor: 'var(--border-hairline)' }}>
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </div>
+          </div>
         )}
       </main>
 
-      {/* Detail Modal */}
+      {/* Booking Dossier Modal */}
       {selectedBooking && (
         <BookingModal
           booking={selectedBooking}
@@ -411,6 +391,4 @@ const ManageLeads = () => {
       )}
     </div>
   );
-};
-
-export default ManageLeads;
+}

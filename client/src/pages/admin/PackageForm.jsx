@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { Save, Plus, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import Loader from '../../components/common/Loader';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import { createPackage, updatePackage, getPackageById } from '../../services/packageService';
 
-const CATEGORIES = ['birthday', 'wedding', 'corporate', 'anniversary', 'other'];
+const CATEGORIES = ['wedding', 'corporate', 'birthday', 'anniversary', 'other'];
 
 const EMPTY_FORM = {
   title: '',
@@ -33,7 +34,6 @@ const PackageForm = () => {
   const [submitError, setSubmitError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // Fetch existing package in edit mode
   useEffect(() => {
     if (!isEditMode) return;
 
@@ -75,7 +75,6 @@ const PackageForm = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-    // Clear field error on change
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
         const next = { ...prev };
@@ -167,286 +166,240 @@ const PackageForm = () => {
 
   const renderFieldError = (field) =>
     fieldErrors[field] ? (
-      <div className="invalid-feedback d-block">{fieldErrors[field]}</div>
+      <div className="invalid-feedback d-block small mt-1">{fieldErrors[field]}</div>
     ) : null;
 
   return (
-    <div className="d-flex" style={{ minHeight: '100vh', background: '#f0f4f8' }}>
+    <div className="d-flex" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-canvas)' }}>
       <AdminSidebar />
 
-      <main className="flex-grow-1 p-4">
-        {/* Header */}
-        <div className="mb-4">
-          <h4 className="fw-bold mb-0" style={{ color: '#0d1b2a' }}>
-            {isEditMode ? '✏️ Edit Package' : '➕ New Package'}
-          </h4>
-          <p className="text-muted small mb-0">
-            {isEditMode ? 'Update the package details below.' : 'Fill in the details to create a new event package.'}
-          </p>
+      <main className="flex-grow-1 p-4 p-md-5 overflow-auto">
+        <div className="mb-4 d-flex justify-content-between align-items-center">
+          <div>
+            <Link
+              to="/admin/packages"
+              className="text-decoration-none small text-muted d-inline-flex align-items-center gap-1 mb-2 hover-gold"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Packages</span>
+            </Link>
+            <h1 className="font-display fs-2 fw-bold mb-0">
+              {isEditMode ? 'Edit Package Portfolio' : 'Author New Package'}
+            </h1>
+          </div>
         </div>
 
         {loadingPackage ? (
-          <Loader />
+          <div className="py-5 text-center">
+            <Loader />
+          </div>
         ) : fetchError ? (
           <ErrorMessage message={fetchError} />
         ) : (
           <form onSubmit={handleSubmit} noValidate>
             <div className="row g-4">
-              {/* Left Column */}
               <div className="col-12 col-lg-8">
-                <div className="card border-0 shadow-sm mb-4">
-                  <div
-                    className="card-header border-0 fw-semibold"
-                    style={{ background: '#0d1b2a', color: '#f5a623' }}
-                  >
-                    📝 Package Information
+                <div
+                  className="card-luxury p-4 p-md-5 mb-4"
+                  style={{ backgroundColor: 'var(--bg-surface)' }}
+                >
+                  <h2 className="fs-5 fw-semibold mb-4">Core Specifications</h2>
+
+                  {submitError && (
+                    <div className="alert alert-danger py-2 px-3 small mb-4">{submitError}</div>
+                  )}
+
+                  <div className="mb-3">
+                    <label className="form-label-luxury">Package Title *</label>
+                    <input
+                      type="text"
+                      name="title"
+                      className="form-control-luxury"
+                      placeholder="e.g. Royal Heritage Wedding Pavilion"
+                      value={formData.title}
+                      onChange={handleChange}
+                    />
+                    {renderFieldError('title')}
                   </div>
-                  <div className="card-body p-4">
-                    {submitError && (
-                      <div className="alert alert-danger py-2 px-3 small">{submitError}</div>
-                    )}
 
-                    {/* Title */}
-                    <div className="mb-3">
-                      <label className="form-label fw-medium">
-                        Title <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="title"
-                        className={`form-control ${fieldErrors.title ? 'is-invalid' : ''}`}
-                        placeholder="e.g. Royal Wedding Package"
-                        value={formData.title}
-                        onChange={handleChange}
-                      />
-                      {renderFieldError('title')}
-                    </div>
+                  <div className="mb-3">
+                    <label className="form-label-luxury">Occasion Category *</label>
+                    <select
+                      name="category"
+                      className="form-control-luxury"
+                      value={formData.category}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select an occasion…</option>
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat} className="text-capitalize">
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                    {renderFieldError('category')}
+                  </div>
 
-                    {/* Category */}
-                    <div className="mb-3">
-                      <label className="form-label fw-medium">
-                        Category <span className="text-danger">*</span>
-                      </label>
-                      <select
-                        name="category"
-                        className={`form-select ${fieldErrors.category ? 'is-invalid' : ''}`}
-                        value={formData.category}
-                        onChange={handleChange}
-                      >
-                        <option value="">Select a category…</option>
-                        {CATEGORIES.map((cat) => (
-                          <option key={cat} value={cat} className="text-capitalize">
-                            {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                      {renderFieldError('category')}
-                    </div>
+                  <div className="mb-3">
+                    <label className="form-label-luxury">
+                      Short Tagline * <span className="text-muted fw-normal">({formData.shortDescription.length}/200)</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="shortDescription"
+                      className="form-control-luxury"
+                      placeholder="A crisp, evocative summary of this celebration"
+                      value={formData.shortDescription}
+                      onChange={handleChange}
+                      maxLength={200}
+                    />
+                    {renderFieldError('shortDescription')}
+                  </div>
 
-                    {/* Short Description */}
-                    <div className="mb-3">
-                      <label className="form-label fw-medium">
-                        Short Description <span className="text-danger">*</span>
-                        <span className="text-muted small ms-2 fw-normal">
-                          ({formData.shortDescription.length}/200)
-                        </span>
-                      </label>
-                      <input
-                        type="text"
-                        name="shortDescription"
-                        className={`form-control ${fieldErrors.shortDescription ? 'is-invalid' : ''}`}
-                        placeholder="A brief tagline for the package"
-                        value={formData.shortDescription}
-                        onChange={handleChange}
-                        maxLength={200}
-                      />
-                      {renderFieldError('shortDescription')}
-                    </div>
+                  <div className="mb-3">
+                    <label className="form-label-luxury">Full Narrative Description *</label>
+                    <textarea
+                      name="description"
+                      rows={6}
+                      className="form-control-luxury"
+                      placeholder="Detailed spatial design, culinary highlights, acoustic setup, and itinerary..."
+                      value={formData.description}
+                      onChange={handleChange}
+                    />
+                    {renderFieldError('description')}
+                  </div>
 
-                    {/* Description */}
-                    <div className="mb-3">
-                      <label className="form-label fw-medium">
-                        Full Description <span className="text-danger">*</span>
-                      </label>
-                      <textarea
-                        name="description"
-                        rows={5}
-                        className={`form-control ${fieldErrors.description ? 'is-invalid' : ''}`}
-                        placeholder="Detailed description of the package…"
-                        value={formData.description}
-                        onChange={handleChange}
-                      />
-                      {renderFieldError('description')}
-                    </div>
+                  <div className="mb-3">
+                    <label className="form-label-luxury">
+                      Inclusions <span className="text-muted fw-normal">(comma-separated)</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="inclusions"
+                      className="form-control-luxury"
+                      placeholder="e.g. 5-Course Sensory Dining, Live Acoustic Strings, Kinetic Chandeliers"
+                      value={formData.inclusions}
+                      onChange={handleChange}
+                    />
+                  </div>
 
-                    {/* Inclusions */}
-                    <div className="mb-3">
-                      <label className="form-label fw-medium">
-                        Inclusions
-                        <span className="text-muted small ms-2 fw-normal">
-                          (comma-separated)
-                        </span>
-                      </label>
-                      <input
-                        type="text"
-                        name="inclusions"
-                        className="form-control"
-                        placeholder="e.g. Decoration, Catering, Photography"
-                        value={formData.inclusions}
-                        onChange={handleChange}
-                      />
-                      <div className="form-text">
-                        Separate each inclusion with a comma.
-                      </div>
-                    </div>
-
-                    {/* Images */}
-                    <div className="mb-0">
-                      <label className="form-label fw-medium">
-                        Image URLs
-                        <span className="text-muted small ms-2 fw-normal">
-                          (comma-separated)
-                        </span>
-                      </label>
-                      <input
-                        type="text"
-                        name="images"
-                        className="form-control"
-                        placeholder="https://…, https://…"
-                        value={formData.images}
-                        onChange={handleChange}
-                      />
-                      <div className="form-text">Paste full image URLs, separated by commas.</div>
-                    </div>
+                  <div className="mb-0">
+                    <label className="form-label-luxury">
+                      Image URLs <span className="text-muted fw-normal">(comma-separated)</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="images"
+                      className="form-control-luxury"
+                      placeholder="https://images.unsplash.com/..., https://..."
+                      value={formData.images}
+                      onChange={handleChange}
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Right Column */}
               <div className="col-12 col-lg-4">
-                {/* Pricing & Details */}
-                <div className="card border-0 shadow-sm mb-4">
-                  <div
-                    className="card-header border-0 fw-semibold"
-                    style={{ background: '#0d1b2a', color: '#f5a623' }}
-                  >
-                    💰 Pricing & Details
+                <div
+                  className="card-luxury p-4 mb-4"
+                  style={{ backgroundColor: 'var(--bg-surface)' }}
+                >
+                  <h2 className="fs-6 fw-semibold mb-3">Investment & Capacity</h2>
+
+                  <div className="mb-3">
+                    <label className="form-label-luxury">Base Investment (₹ INR) *</label>
+                    <input
+                      type="number"
+                      name="price"
+                      min="0"
+                      className="form-control-luxury"
+                      placeholder="e.g. 450000"
+                      value={formData.price}
+                      onChange={handleChange}
+                    />
+                    {renderFieldError('price')}
                   </div>
-                  <div className="card-body p-4">
-                    {/* Price */}
-                    <div className="mb-3">
-                      <label className="form-label fw-medium">
-                        Price (₹) <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        name="price"
-                        min="0"
-                        step="0.01"
-                        className={`form-control ${fieldErrors.price ? 'is-invalid' : ''}`}
-                        placeholder="e.g. 50000"
-                        value={formData.price}
-                        onChange={handleChange}
-                      />
-                      {renderFieldError('price')}
-                    </div>
 
-                    {/* Capacity */}
-                    <div className="mb-3">
-                      <label className="form-label fw-medium">Capacity</label>
-                      <input
-                        type="number"
-                        name="capacity"
-                        min="0"
-                        className={`form-control ${fieldErrors.capacity ? 'is-invalid' : ''}`}
-                        placeholder="e.g. 100"
-                        value={formData.capacity}
-                        onChange={handleChange}
-                      />
-                      {renderFieldError('capacity')}
-                    </div>
+                  <div className="mb-3">
+                    <label className="form-label-luxury">Guest Capacity</label>
+                    <input
+                      type="number"
+                      name="capacity"
+                      min="0"
+                      className="form-control-luxury"
+                      placeholder="e.g. 250"
+                      value={formData.capacity}
+                      onChange={handleChange}
+                    />
+                    {renderFieldError('capacity')}
+                  </div>
 
-                    {/* Duration */}
-                    <div className="mb-0">
-                      <label className="form-label fw-medium">Duration</label>
-                      <input
-                        type="text"
-                        name="duration"
-                        className="form-control"
-                        placeholder="e.g. 4 hours, Full day"
-                        value={formData.duration}
-                        onChange={handleChange}
-                      />
-                    </div>
+                  <div className="mb-0">
+                    <label className="form-label-luxury">Duration</label>
+                    <input
+                      type="text"
+                      name="duration"
+                      className="form-control-luxury"
+                      placeholder="e.g. Full Day / 8 Hours"
+                      value={formData.duration}
+                      onChange={handleChange}
+                    />
                   </div>
                 </div>
 
-                {/* Settings */}
-                <div className="card border-0 shadow-sm mb-4">
-                  <div
-                    className="card-header border-0 fw-semibold"
-                    style={{ background: '#0d1b2a', color: '#f5a623' }}
-                  >
-                    ⚙️ Settings
+                <div
+                  className="card-luxury p-4 mb-4"
+                  style={{ backgroundColor: 'var(--bg-surface)' }}
+                >
+                  <h2 className="fs-6 fw-semibold mb-3">Visibility & Status</h2>
+
+                  <div className="form-check form-switch mb-3">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="isFeatured"
+                      name="isFeatured"
+                      checked={formData.isFeatured}
+                      onChange={handleChange}
+                    />
+                    <label className="form-check-label small fw-medium" htmlFor="isFeatured">
+                      Featured in Homepage Showcase
+                    </label>
                   </div>
-                  <div className="card-body p-4">
-                    <div className="form-check form-switch mb-3">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="isFeatured"
-                        name="isFeatured"
-                        checked={formData.isFeatured}
-                        onChange={handleChange}
-                      />
-                      <label className="form-check-label fw-medium" htmlFor="isFeatured">
-                        ⭐ Featured Package
-                      </label>
-                      <div className="form-text">Show on homepage featured section.</div>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="isActive"
-                        name="isActive"
-                        checked={formData.isActive}
-                        onChange={handleChange}
-                      />
-                      <label className="form-check-label fw-medium" htmlFor="isActive">
-                        ✅ Active
-                      </label>
-                      <div className="form-text">Inactive packages are hidden from clients.</div>
-                    </div>
+
+                  <div className="form-check form-switch mb-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="isActive"
+                      name="isActive"
+                      checked={formData.isActive}
+                      onChange={handleChange}
+                    />
+                    <label className="form-check-label small fw-medium" htmlFor="isActive">
+                      Active (Visible to Clients)
+                    </label>
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="d-grid gap-2">
                   <button
                     type="submit"
-                    className="btn fw-semibold py-2"
-                    style={{ background: '#f5a623', color: '#0d1b2a', border: 'none' }}
+                    className="btn-luxury-gold py-3 justify-content-center"
                     disabled={submitting}
                   >
                     {submitting ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        />
-                        {isEditMode ? 'Updating…' : 'Creating…'}
-                      </>
-                    ) : isEditMode ? (
-                      '💾 Update Package'
+                      <span>Saving Package...</span>
                     ) : (
-                      '✅ Create Package'
+                      <>
+                        <Save size={16} />
+                        <span>{isEditMode ? 'Save Changes' : 'Publish Package'}</span>
+                      </>
                     )}
                   </button>
                   <button
                     type="button"
-                    className="btn btn-outline-secondary"
+                    className="btn-luxury-outline py-2 justify-content-center"
                     onClick={() => navigate('/admin/packages')}
                     disabled={submitting}
                   >
