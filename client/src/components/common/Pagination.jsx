@@ -1,5 +1,7 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 /**
- * Tactile pagination component using the design system.
+ * Minimalist luxury pagination component.
  * @param {number} currentPage - Active page number (1-indexed)
  * @param {number} totalPages - Total number of pages
  * @param {function} onPageChange - Callback with new page number
@@ -11,43 +13,43 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
   return (
     <nav aria-label="Page navigation" className="mt-4">
-      <ul className="pagination justify-content-center">
-        <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-          <button
-            type="button"
-            className="page-link btn-tactile"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            aria-label="Previous page"
-          >
-            ← Previous
-          </button>
-        </li>
+      <div className="d-flex justify-content-center align-items-center gap-1">
+        <button
+          type="button"
+          className="btn btn-luxury-outline p-2"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          aria-label="Previous page"
+        >
+          <ChevronLeft size={16} />
+        </button>
+
         {pages.map((p) => (
-          <li key={p} className={`page-item ${p === currentPage ? 'active' : ''}`}>
-            <button
-              type="button"
-              className="page-link btn-tactile"
-              onClick={() => onPageChange(p)}
-              aria-label={`Page ${p}`}
-              aria-current={p === currentPage ? 'page' : undefined}
-            >
-              {p}
-            </button>
-          </li>
-        ))}
-        <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
           <button
+            key={p}
             type="button"
-            className="page-link btn-tactile"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            aria-label="Next page"
+            className={`btn px-3 py-2 ${
+              p === currentPage ? 'btn-luxury-primary' : 'btn-luxury-outline'
+            }`}
+            style={{ fontSize: '0.825rem' }}
+            onClick={() => onPageChange(p)}
+            aria-label={`Page ${p}`}
+            aria-current={p === currentPage ? 'page' : undefined}
           >
-            Next →
+            {p}
           </button>
-        </li>
-      </ul>
+        ))}
+
+        <button
+          type="button"
+          className="btn btn-luxury-outline p-2"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          aria-label="Next page"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
     </nav>
   );
 };

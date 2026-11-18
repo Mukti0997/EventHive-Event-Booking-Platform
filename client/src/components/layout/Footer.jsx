@@ -1,19 +1,5 @@
 import { Link } from 'react-router-dom';
-
-const quickLinks = [
-  ['/', 'Home'],
-  ['/packages', 'Explore packages'],
-  ['/about', 'About us'],
-  ['/contact', 'Contact'],
-];
-
-const eventCategories = [
-  'Birthdays',
-  'Weddings',
-  'Corporate events',
-  'Anniversaries',
-  'Custom events',
-];
+import { ArrowUpRight, Mail, Phone, MapPin } from 'lucide-react';
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -21,179 +7,186 @@ const Footer = () => {
   return (
     <footer
       style={{
-        backgroundColor: 'var(--bg-surface)',
-        borderTop: '1px solid var(--border-subtle)',
-        paddingTop: '64px',
-        paddingBottom: '32px',
-        color: 'var(--text-secondary)',
+        backgroundColor: 'var(--bg-dark)',
+        color: 'var(--text-inverse)',
+        paddingTop: '80px',
+        paddingBottom: '40px',
+        borderTop: '1px solid var(--border-dark)',
       }}
     >
       <div className="container">
-        <div className="row g-4 g-lg-5 pb-5">
-          {/* Brand & Location */}
-          <div className="col-lg-4 col-md-12">
+        <div className="row g-5 pb-5 border-bottom" style={{ borderColor: 'var(--bg-dark-border)' }}>
+          {/* Brand Manifesto */}
+          <div className="col-lg-4 col-md-6">
             <Link
               to="/"
-              className="d-inline-flex align-items-center mb-3"
-              style={{
-                textDecoration: 'none',
-                color: 'var(--text-primary)',
-                fontWeight: 800,
-                fontSize: '20px',
-                letterSpacing: '-0.04em',
-              }}
+              className="d-inline-flex align-items-center mb-3 text-decoration-none"
+              style={{ color: '#ffffff' }}
             >
-              <span>Event</span>
-              <span style={{ color: 'var(--text-muted)', fontWeight: 500, marginLeft: '2px' }}>Hive</span>
+              <span className="font-display fs-4 fw-bold">EventHive</span>
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--brand-gold)',
+                  marginLeft: '4px',
+                }}
+              />
             </Link>
             <p
-              className="mb-3"
+              className="pe-lg-4"
               style={{
-                fontSize: '14px',
+                fontSize: '0.9rem',
+                color: 'rgba(255, 255, 255, 0.7)',
                 lineHeight: 1.7,
-                color: 'var(--text-muted)',
-                maxWidth: '340px',
               }}
             >
-              Thoughtful, end-to-end event production and coordination for life's most meaningful celebrations.
+              A bespoke event management atelier dedicated to orchestrating meaningful celebrations,
+              memorable milestones, and high-impact corporate summits with architectural precision.
             </p>
-            <div
-              className="d-flex align-items-center"
-              style={{ fontSize: '13px', color: 'var(--text-secondary)' }}
-            >
-              <i className="bi bi-geo-alt me-2 text-dark" aria-hidden="true" />
-              <span>Mathura, Uttar Pradesh, India</span>
+            <div className="d-flex align-items-center gap-2 mt-4 text-white-50 small">
+              <MapPin size={15} className="text-warning" />
+              <span>Mathura • Delhi NCR • Pan-India</span>
             </div>
           </div>
 
-          {/* Quick links */}
-          <div className="col-6 col-lg-2">
-            <h6
-              className="fw-bold text-uppercase mb-3"
+          {/* Curated Categories */}
+          <div className="col-lg-2 col-md-6 col-6">
+            <h4
+              className="text-uppercase mb-3"
               style={{
-                fontSize: '11px',
-                letterSpacing: '0.08em',
-                color: 'var(--text-primary)',
+                fontSize: '0.75rem',
+                letterSpacing: '0.12em',
+                color: 'var(--brand-gold)',
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
               }}
             >
-              Platform
-            </h6>
-            <ul className="list-unstyled d-flex flex-column gap-2 mb-0" style={{ fontSize: '14px' }}>
-              {quickLinks.map(([to, label]) => (
-                <li key={to}>
-                  <Link
-                    to={to}
-                    className="text-secondary"
-                    style={{ textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => (e.target.style.color = 'var(--text-primary)')}
-                    onMouseLeave={(e) => (e.target.style.color = 'var(--text-secondary)')}
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
+              Curated Occasions
+            </h4>
+            <ul className="list-unstyled d-flex flex-column gap-2 mb-0" style={{ fontSize: '0.875rem' }}>
+              <li>
+                <Link to="/packages?category=wedding" className="text-white-50 text-decoration-none hover-white">
+                  Grand Weddings
+                </Link>
+              </li>
+              <li>
+                <Link to="/packages?category=corporate" className="text-white-50 text-decoration-none hover-white">
+                  Corporate Galas
+                </Link>
+              </li>
+              <li>
+                <Link to="/packages?category=birthday" className="text-white-50 text-decoration-none hover-white">
+                  Milestone Birthdays
+                </Link>
+              </li>
+              <li>
+                <Link to="/packages?category=anniversary" className="text-white-50 text-decoration-none hover-white">
+                  Anniversaries
+                </Link>
+              </li>
+              <li>
+                <Link to="/packages" className="text-white-50 text-decoration-none hover-white">
+                  All Collections
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Occasions */}
-          <div className="col-6 col-lg-3">
-            <h6
-              className="fw-bold text-uppercase mb-3"
+          {/* Studio Navigation */}
+          <div className="col-lg-2 col-md-6 col-6">
+            <h4
+              className="text-uppercase mb-3"
               style={{
-                fontSize: '11px',
-                letterSpacing: '0.08em',
-                color: 'var(--text-primary)',
+                fontSize: '0.75rem',
+                letterSpacing: '0.12em',
+                color: 'var(--brand-gold)',
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
               }}
             >
-              Occasions
-            </h6>
-            <ul className="list-unstyled d-flex flex-column gap-2 mb-0" style={{ fontSize: '14px' }}>
-              {eventCategories.map((category) => (
-                <li key={category}>
-                  <Link
-                    to="/packages"
-                    className="text-secondary"
-                    style={{ textDecoration: 'none', transition: 'color 0.15s ease' }}
-                    onMouseEnter={(e) => (e.target.style.color = 'var(--text-primary)')}
-                    onMouseLeave={(e) => (e.target.style.color = 'var(--text-secondary)')}
-                  >
-                    {category}
-                  </Link>
-                </li>
-              ))}
+              The Studio
+            </h4>
+            <ul className="list-unstyled d-flex flex-column gap-2 mb-0" style={{ fontSize: '0.875rem' }}>
+              <li>
+                <Link to="/about" className="text-white-50 text-decoration-none hover-white">
+                  About EventHive
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-white-50 text-decoration-none hover-white">
+                  Contact & Inquiries
+                </Link>
+              </li>
+              <li>
+                <Link to="/book" className="text-white-50 text-decoration-none hover-white">
+                  Reserve a Date
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/login" className="text-white-50 text-decoration-none hover-white">
+                  Admin Portal
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Contact Details */}
-          <div className="col-md-6 col-lg-3">
-            <h6
-              className="fw-bold text-uppercase mb-3"
+          {/* Quick Contact & Consultation */}
+          <div className="col-lg-4 col-md-6">
+            <h4
+              className="text-uppercase mb-3"
               style={{
-                fontSize: '11px',
-                letterSpacing: '0.08em',
-                color: 'var(--text-primary)',
+                fontSize: '0.75rem',
+                letterSpacing: '0.12em',
+                color: 'var(--brand-gold)',
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
               }}
             >
-              Direct Inquiry
-            </h6>
-            <p className="small text-muted mb-3">
-              Reach out directly to speak with an event specialist about your date.
+              Begin Your Journey
+            </h4>
+            <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+              Let’s design an experience that leaves a lasting impression. Schedule a private consultation today.
             </p>
-            <ul className="list-unstyled d-flex flex-column gap-2 mb-3" style={{ fontSize: '14px' }}>
-              <li>
-                <a
-                  href="tel:+919876543210"
-                  className="text-secondary d-inline-flex align-items-center gap-2"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <i className="bi bi-telephone text-dark" aria-hidden="true" />
-                  +91 98765 43210
-                </a>
-              </li>
-              <li>
-                <a
-                  href="mailto:hello@eventhive.in"
-                  className="text-secondary d-inline-flex align-items-center gap-2"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <i className="bi bi-envelope text-dark" aria-hidden="true" />
-                  hello@eventhive.in
-                </a>
-              </li>
-            </ul>
+            <div className="d-flex flex-column gap-2 mb-4">
+              <a
+                href="mailto:concierge@eventhive.in"
+                className="d-flex align-items-center gap-2 text-white-50 text-decoration-none hover-white"
+                style={{ fontSize: '0.875rem' }}
+              >
+                <Mail size={15} />
+                <span>concierge@eventhive.in</span>
+              </a>
+              <a
+                href="tel:+919876543210"
+                className="d-flex align-items-center gap-2 text-white-50 text-decoration-none hover-white"
+                style={{ fontSize: '0.875rem' }}
+              >
+                <Phone size={15} />
+                <span>+91 98765 43210</span>
+              </a>
+            </div>
+
             <Link
-              to="/contact"
-              className="fw-semibold small d-inline-flex align-items-center"
-              style={{ color: 'var(--text-primary)', textDecoration: 'none' }}
+              to="/book"
+              className="btn-luxury-gold w-100 justify-content-center"
+              style={{ fontSize: '0.825rem', padding: '0.65rem 1.25rem' }}
             >
-              Send an inquiry
-              <i className="bi bi-arrow-right ms-2 icon-nudge" aria-hidden="true" />
+              <span>Request Private Consultation</span>
+              <ArrowUpRight size={14} />
             </Link>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div
-          className="pt-4 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2"
-          style={{
-            borderTop: '1px solid var(--border-subtle)',
-            fontSize: '13px',
-            color: 'var(--text-muted)',
-          }}
-        >
-          <div>
-            © {year} EventHive. Developed by Team EventHive, GLA University.
-          </div>
-          <div>
-            <Link
-              to="/admin/login"
-              className="text-muted"
-              style={{ textDecoration: 'none', fontSize: '12px' }}
-              onMouseEnter={(e) => (e.target.style.color = 'var(--text-primary)')}
-              onMouseLeave={(e) => (e.target.style.color = 'var(--text-muted)')}
-            >
-              Organizer portal
-            </Link>
+        <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center pt-4 text-white-50 small">
+          <p className="mb-2 mb-sm-0">
+            © {year} EventHive Experience Management Pvt Ltd. All rights reserved.
+          </p>
+          <div className="d-flex gap-4">
+            <span className="text-white-50">Handcrafted with architectural precision</span>
           </div>
         </div>
       </div>
